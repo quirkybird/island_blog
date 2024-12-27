@@ -1,19 +1,22 @@
-const https = require("https")
-const http = require("http")
-const fs = require("fs")
-const { ApolloServer } = require("@apollo/server");
-const { makeExecutableSchema } = require("@graphql-tools/schema");
-const { typeDefs, resolvers } = require("./schemas");
-const {koaMiddleware} = require("@as-integrations/koa")
-const { ApolloServerPluginDrainHttpServer } = require("@apollo/server/plugin/drainHttpServer")
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+const { ApolloServer } = require('@apollo/server');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { typeDefs, resolvers } = require('./schemas');
+const { koaMiddleware } = require('@as-integrations/koa');
+const {
+  ApolloServerPluginDrainHttpServer,
+} = require('@apollo/server/plugin/drainHttpServer');
+const router = require('./src/router/root.router');
 
 // 导入配置好的app
-const app = require("./src/app");
+const app = require('./src/app');
 // 连接数据库
-require("./database");
+require('./database');
 const PORT = 80;
 
-//开启https服务 
+//开启https服务
 // 签名配置
 // const options = {
 //   key: fs.readFileSync("./SSL/private.key"),
@@ -30,8 +33,8 @@ const server = new ApolloServer({
 
 // 将 Apollo Server 的中间件应用到 Koa 实例上
 server.start().then((res) => {
-  app.use(
-    // '/graphql',
+  router.all(
+    '/graphql',
     koaMiddleware(server, {
       context: async ({ ctx }) => ({ token: ctx.headers.token }),
     })
@@ -39,8 +42,6 @@ server.start().then((res) => {
 
   // 启动 Koa 实例，监听指定端口
   httpServer.listen({ port: PORT }, () => {
-    console.log(
-      `Server start at http://localhost:${PORT}`
-    );
+    console.log(`Server start at http://localhost:${PORT}`);
   });
 });
