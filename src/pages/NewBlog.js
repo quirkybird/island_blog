@@ -4,6 +4,7 @@ import { CREATE_NEW_POST } from "../utils/queryData";
 import UploadFile from "../components/common/UploadFile";
 import Mkd from "../components/common/Mkd";
 import { message } from "antd";
+import { Empty } from "antd";
 const NewBlog = () => {
   const newBlogFormRef = useRef(null);
   const [content, setContent] = useState("");
@@ -180,7 +181,13 @@ const NewBlog = () => {
       </section>
       <section className="flex-[2_2_0%] overflow-x-auto">
         <div className="h-screen overflow-y-auto">
-          <Mkd markdown={content} />
+          {content ? (
+            <Mkd markdown={content} />
+          ) : (
+            <div className="h-full flex justify-center items-center">
+              <Empty description="暂无内容" />
+            </div>
+          )}
         </div>
       </section>
     </main>
