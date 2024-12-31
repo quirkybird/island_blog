@@ -1,7 +1,8 @@
-const { getRecentPosts } = require('../service/root.service');
-const path = require('path');
-const fetch = require('node-fetch');
-const FormData = require('form-data');
+const fs = require("fs");
+const { getRecentPosts } = require("../service/root.service");
+const path = require("path");
+const fetch = require("node-fetch");
+const FormData = require("form-data");
 
 const rootController = {
   getRecentPosts: async (ctx, next) => {
@@ -13,10 +14,39 @@ const rootController = {
   uploadImage: async (ctx, next) => {
     if (ctx.request.files) {
       const files = ctx.request.files;
-      ctx.set('Content-Type', 'application/json');
+      const coverImage = files["image"][0];
+      const blogFile = files["markdown"][0];
+
+      //如果没有新的封面，就保存新的值
+      if (!ctx.coverFileName) {
+        const fileName =
+          Date.now() +
+          Buffer.from(coverImage.originalname, "binary").toString();
+        await fs.promises.writeFile(
+          path.join(process.cwd(), "uploads/image", fileName),
+          coverImage.buffer,
+          { encoding: "utf-8" }
+        );
+        console.log("保存了新图片");
+        ctx.coverFileName = fileName;
+      }
+
+      // 如果博客内容没有更新，就储存新的值
+      if (!ctx.blogFileName) {
+        const fileName =
+          Date.now() + Buffer.from(blogFile.originalname, "binary").toString();
+        await fs.promises.writeFile(
+          path.join(process.cwd(), "uploads/blog", fileName),
+          blogFile.buffer,
+          { encoding: "utf-8" }
+        );
+        ctx.blogFileName = fileName;
+      }
+
+      ctx.set("Content-Type", "application/json");
       ctx.body = {
-        coverFileName: files['image'][0].filename,
-        blogFileName: path.parse(files['markdown'][0].filename).name,
+        coverFileName: ctx.coverFileName,
+        blogFileName: ctx.blogFileName,
       };
     }
   },
@@ -24,7 +54,7 @@ const rootController = {
   uploadSMMS: async (ctx, next) => {
     const { urls } = ctx.request.body;
     if (urls.length == 0) {
-      ctx.body = { msg: '文章没有图片' };
+      ctx.body = { msg: "文章没有图片" };
       return;
     }
     const fetchImgSrc = (urls) => {
@@ -34,13 +64,12 @@ const rootController = {
             fetch(url)
               .then((res) => res.buffer())
               .then((data) => {
-                console.log(data);
                 const imgFormData = new FormData();
-                imgFormData.append('smfile', data, `${new Date().getTime()}`);
-                fetch('https://sm.ms/api/v2/upload', {
-                  method: 'POST',
+                imgFormData.append("smfile", data, `${new Date().getTime()}`);
+                fetch("https://sm.ms/api/v2/upload", {
+                  method: "POST",
                   headers: {
-                    Authorization: 'UdKmYqnlvx5YfBtfwD44vdyYZBTLGEgv',
+                    Authorization: "UdKmYqnlvx5YfBtfwD44vdyYZBTLGEgv",
                   },
                   body: imgFormData,
                 })
@@ -49,7 +78,7 @@ const rootController = {
                     if (data.success === true) {
                       resolve(data.data.url);
                     } else {
-                      reject('图片解析出错');
+                      resolve(data.images);
                     }
                   });
               });

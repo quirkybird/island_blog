@@ -1,6 +1,6 @@
 const connection = require("../../database");
-const fs = require("fs")
-const path = require("path")
+const fs = require("fs");
+const path = require("path");
 const rootService = {
   // 获取最近文章
   getRecentPosts: async () => {
@@ -21,10 +21,13 @@ const rootService = {
     const [post] = await connection.execute(sql, [post_id]);
     // 将content从文件名称换为文件具体内容
     try {
-      post[0].content =  fs.readFileSync(path.join("uploads/blog", `${post[0].content}.md`), "utf-8");
+      post[0].content = fs.readFileSync(
+        path.join("uploads/blog", `${post[0].content}`),
+        "utf-8"
+      );
       return post;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   },
   // 获取友链
@@ -50,17 +53,32 @@ const rootService = {
   },
 
   // 上传文章
-  createNewPost: async ({title, author, categories, tags, content, descr, image}) => {
+  createNewPost: async ({
+    title,
+    author,
+    categories,
+    tags,
+    content,
+    descr,
+    image,
+  }) => {
     const sql = `insert into blog_posts(title, author, categories, tags, content, descr, image)
-                values(?, ?, ?, ?, ?, ?, ?)`
+                values(?, ?, ?, ?, ?, ?, ?)`;
     try {
-      await connection.execute(sql, [title, author, categories, tags, content, descr, image])
-      return {message: "文件已经成功上传"}
+      await connection.execute(sql, [
+        title,
+        author,
+        categories,
+        tags,
+        content,
+        descr,
+        image,
+      ]);
+      return { message: "文件已经成功上传" };
     } catch (error) {
-      return {message: error.message}
+      return { message: error.message };
     }
-    
-    }
+  },
 };
 
 module.exports = rootService;

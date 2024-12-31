@@ -22,7 +22,11 @@ if (deviceType === "desktop") boo_user = false;
 
 const routes = [
   {
-    path: '/createNewPost',
+    path: "/createNewPost",
+    element: <NewBlog />,
+  },
+  {
+    path: "/editPost/:id",
     element: <NewBlog />,
   },
   {
@@ -60,7 +64,6 @@ const routes = [
       },
     ],
   },
-  
 ];
 
 const router = createBrowserRouter(routes);

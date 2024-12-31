@@ -3,12 +3,28 @@ import CONFIG from "../../constants/config";
 import { message } from "antd";
 import mkdIcon from "../../assets/icon/mkd.svg";
 
-const UploadFile = ({ uploadRef, getFileName, getMkdContent }) => {
+const UploadFile = ({
+  uploadRef,
+  getFileName,
+  getMkdContent,
+  isEdit,
+  data,
+}) => {
   const imgFileInput = useRef(null);
   const mdFileInput = useRef(null);
 
   const [coverUrl, setCoverUrl] = useState(null);
   const [postName, setPostName] = useState("");
+
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (isEdit) {
+      setPostName(data.title);
+      setCoverUrl(CONFIG.SERVER_URL + "/image/" + data.image);
+      setQuery(`?id=${data.id}`);
+    }
+  }, [data, isEdit]);
 
   // 文件发生变化进行文件读取展示
   const onPostChange = () => {
@@ -91,6 +107,8 @@ const UploadFile = ({ uploadRef, getFileName, getMkdContent }) => {
 
         console.log(replacedUrls, "---res");
 
+        // if(!replacedUrls)
+
         const newContent = content.replace(regex, (match, p1) => {
           return match.replace(p1, replacedUrls[index++]);
         });
@@ -100,7 +118,10 @@ const UploadFile = ({ uploadRef, getFileName, getMkdContent }) => {
 
         formData.append("image", imgfile);
         formData.append("markdown", modifiedFile);
-        const res = await fetch(CONFIG.SERVER_URL + "/upload-image", {
+        const upload_url = isEdit
+          ? "/upload-image-again"
+          : "/upload-image-first";
+        const res = await fetch(CONFIG.SERVER_URL + upload_url + query, {
           method: "POST",
           body: formData,
         });

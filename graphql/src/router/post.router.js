@@ -10,6 +10,9 @@ const postRouter = new Router({ prefix: "/post" });
 postRouter.get("/delete/:id", vertifyAuth, PostController.deletePost);
 
 // 编辑文章
-postRouter.post("/edit/:id", vertifyAuth, PostController.editPost);
+postRouter.post("/edit/:id", PostController.editPost);
+
+// 获取一篇文章数据
+postRouter.get("/detail/:id", PostController.detailPost);
 
 module.exports = postRouter;
