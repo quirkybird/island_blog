@@ -1,15 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+} from "react";
 import CONFIG from "../../constants/config";
 import { message } from "antd";
 import mkdIcon from "../../assets/icon/mkd.svg";
 
-const UploadFile = ({
-  uploadRef,
-  getFileName,
-  getMkdContent,
-  isEdit,
-  data,
-}) => {
+const UploadFile = forwardRef((props, ref) => {
+  const { getMkdContent, isEdit, data } = props;
   const imgFileInput = useRef(null);
   const mdFileInput = useRef(null);
 
@@ -18,11 +19,17 @@ const UploadFile = ({
 
   const [query, setQuery] = useState("");
 
+  useImperativeHandle(ref, () => ({
+    handleUpload: async () => {
+      return await subUplodFileHandle();
+    },
+  }));
+
   useEffect(() => {
     if (isEdit) {
-      setPostName(data.title);
-      setCoverUrl(CONFIG.SERVER_URL + "/image/" + data.image);
-      setQuery(`?id=${data.id}`);
+      setPostName(data?.fileName);
+      setCoverUrl(CONFIG.SERVER_URL + "/image/" + data?.image);
+      setQuery(`?id=${data?.id}`);
     }
   }, [data, isEdit]);
 
@@ -60,17 +67,22 @@ const UploadFile = ({
     }
   };
 
-  useEffect(() => {
+  async function subUplodFileHandle() {
     const imgInputRef = imgFileInput.current;
     const mdInputRef = mdFileInput.current;
-    const upload = uploadRef.current;
+
     // submit事件后上传封面文件和文章内容文件（markdown）
-    const handleUploadFile = async (e) => {
-      // 阻止默认事件
-      e.preventDefault();
+    const handleUploadFile = async () => {
       const imgfile = imgInputRef.files[0];
       const mdfile = mdInputRef.files[0];
-
+      if (isEdit && !imgfile && !mdfile) {
+        console.error("未上传封面或文章内容文件");
+        message.info("未上传封面或文章内容文件");
+        return {
+          coverFileName: data.coverFileName,
+          blogFileName: data.blogFileName,
+        };
+      }
       // 设置mimeType类型值
       // img浏览器会自动识别
       // mdfile.type = "text/markdown"
@@ -80,69 +92,76 @@ const UploadFile = ({
 
       // 新建 FileReader 对象
       const reader = new FileReader();
-
-      reader.onload = async function (e) {
-        let index = 0;
-        const content = e.target.result;
-        // 正则表达式，用于匹配Markdown中的图片URL
-        const regex = /!\[.*?\]\((.*?)\)/g;
-
-        // 使用 matchAll 获取所有匹配结果
-        const matches = [...content.matchAll(regex)];
-
-        // 提取URL部分并存储在数组中
-        const urls = matches.map((match) => match[1]);
-        console.log(urls, "--urls");
-
-        //把url交给服务器处理，返回替换url后的链接
-        const replacedUrls = await fetch(CONFIG.SERVER_URL + "/replace", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            urls,
-          }),
-        }).then((res) => res.json());
-
-        console.log(replacedUrls, "---res");
-
-        // if(!replacedUrls)
-
-        const newContent = content.replace(regex, (match, p1) => {
-          return match.replace(p1, replacedUrls[index++]);
-        });
-
-        const modifiedBlob = new Blob([newContent]);
-        const modifiedFile = new File([modifiedBlob], mdfile.name);
-
-        formData.append("image", imgfile);
-        formData.append("markdown", modifiedFile);
-        const upload_url = isEdit
-          ? "/upload-image-again"
-          : "/upload-image-first";
-        const res = await fetch(CONFIG.SERVER_URL + upload_url + query, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await res.json();
-        // 将使用回调函数，传回响应值
-        getFileName(data);
-      };
-
       // 读取为文本文件
       reader.readAsText(mdfile);
+      return new Promise((resolve, reject) => {
+        reader.onload = async function (e) {
+          let index = 0;
+          const content = e.target.result;
+          // 正则表达式，用于匹配Markdown中的图片URL
+          const regex = /!\[.*?\]\((.*?)\)/g;
 
-      // await new Promise((resolve, reject) => {
-      //   setTimeout(() => resolve(), 100000000);
-      // });
-    };
+          // 使用 matchAll 获取所有匹配结果
+          const matches = [...content.matchAll(regex)];
 
-    upload.addEventListener("submit", handleUploadFile);
-    return () => {
-      upload.removeEventListener("submit", handleUploadFile);
+          // 提取URL部分并存储在数组中
+          const urls = matches.map((match) => match[1]);
+          console.log(urls, "--urls");
+
+          //把url交给服务器处理，返回替换url后的链接
+          const replacedUrls = await fetch(CONFIG.SERVER_URL + "/replace", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              urls,
+            }),
+          })
+            .then((res) => res.json())
+            .catch((err) => {
+              message.error("文章中图片上传遇到麻烦", err.message);
+            });
+
+          console.log(replacedUrls, "---res");
+
+          // if(!replacedUrls)
+
+          const newContent = content.replace(regex, (match, p1) => {
+            return match.replace(p1, replacedUrls[index++]);
+          });
+
+          const modifiedBlob = new Blob([newContent]);
+          const modifiedFile = new File([modifiedBlob], mdfile.name);
+
+          formData.append("image", imgfile);
+          formData.append("markdown", modifiedFile);
+          const upload_url = isEdit
+            ? "/upload-image-again"
+            : "/upload-image-first";
+          const res = await fetch(CONFIG.SERVER_URL + upload_url + query, {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+
+          // 将使用回调函数，传回响应值
+          // getFileName(data);
+          resolve({
+            coverFileName: data.coverFileName,
+            blogFileName: data.blogFileName,
+          });
+        };
+      });
     };
-  });
+    try {
+      const res = await handleUploadFile();
+      return res;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg border border-gray-200">
       <div className="space-y-2">
@@ -187,7 +206,7 @@ const UploadFile = ({
               type="file"
               ref={mdFileInput}
               onChange={onPostChange}
-              required
+              // required
               className="hidden"
             />
           </label>
@@ -238,7 +257,7 @@ const UploadFile = ({
               type="file"
               ref={imgFileInput}
               onChange={coverFileChange}
-              required
+              // required
               className="hidden"
               accept="image/*"
             />
@@ -247,6 +266,6 @@ const UploadFile = ({
       </div>
     </div>
   );
-};
+});
 
 export default UploadFile;

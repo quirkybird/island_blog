@@ -1,22 +1,25 @@
-import React from 'react';
-import { RouterProvider } from 'react-router-dom';
-import router from './router';
-import ReactDOM from 'react-dom/client';
-import './assets/index.css';
-import 'animate.css'; //导入动画库
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import React from "react";
+import { RouterProvider } from "react-router-dom";
+import router from "./router";
+import ReactDOM from "react-dom/client";
+import "./assets/index.css";
+import "animate.css"; //导入动画库
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import { LoadingProvider } from "./components/common/LoadingContext";
 
 const client = new ApolloClient({
-  uri: 'http://localhost:80/graphql',
+  uri: "http://localhost:80/graphql",
   // uri: 'https://server.yamorz.top/graphql',
   cache: new InMemoryCache(),
 });
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   // <React.StrictMode>
   <ApolloProvider client={client}>
-    <RouterProvider router={router} />
+    <LoadingProvider>
+      <RouterProvider router={router} />
+    </LoadingProvider>
   </ApolloProvider>
   // </React.StrictMode>
 );

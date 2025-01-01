@@ -1,5 +1,9 @@
 const Router = require("@koa/router");
-const { getRecentPosts, uploadSMMS } = require("../controller/root.controller");
+const {
+  uploadSMMS,
+  getAllLogs,
+  getRecentPosts,
+} = require("../controller/root.controller");
 const { uploadImage } = require("../controller/root.controller");
 const { uploadPostFile, checkFile } = require("../middleware/file.middleware");
 const router = new Router();
@@ -15,5 +19,8 @@ router.post("/upload-image-again", uploadPostFile(), checkFile, uploadImage);
 
 // 替换文章中所有图片链接到smms
 router.post("/replace", uploadSMMS);
+
+// 操作日志记录（除开查询）
+router.get("/logs/record", getAllLogs);
 
 module.exports = router;

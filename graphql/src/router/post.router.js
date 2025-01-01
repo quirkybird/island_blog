@@ -15,4 +15,7 @@ postRouter.post("/edit/:id", PostController.editPost);
 // 获取一篇文章数据
 postRouter.get("/detail/:id", PostController.detailPost);
 
+// 获取全部文章
+postRouter.get("/all", PostController.getAllPosts);
+
 module.exports = postRouter;

@@ -3,16 +3,16 @@ const spanner = require("../utils/spanner");
 class PostService {
   async deletePost(postId) {
     const statement = "DELETE FROM blog_posts WHERE id = ?";
+    const { title } = await this.getPostItem(postId);
     const [res] = await connection.execute(statement, [postId]);
     res.msg = "数据删除成功！";
+    res.logs = title;
     return res;
   }
 
   async editPost(id, body) {
-    const change = spanner.findChangedProperties(
-      await this.getPostItem(id),
-      body
-    );
+    const old = await this.getPostItem(id);
+    const change = spanner.findChangedProperties(old, body);
     const keyOfChange = Object.keys(change);
     if (keyOfChange.length === 0) return { msg: "数据没有变化" };
 
@@ -25,6 +25,19 @@ class PostService {
     const multipleValues = [...valueOfChange, id];
     const [res] = await connection.execute(statement, multipleValues);
     res.msg = "数据修改成功！";
+
+    // 写入日志数据
+    const originData = [];
+    for (const key of keyOfChange) {
+      originData.push(old[key]);
+    }
+    const changeData = valueOfChange;
+    res.logs = {
+      title: body.title,
+      keyOfChange,
+      originData,
+      changeData,
+    };
     return res;
   }
 

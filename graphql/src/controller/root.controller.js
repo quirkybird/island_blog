@@ -1,5 +1,9 @@
 const fs = require("fs");
-const { getRecentPosts } = require("../service/root.service");
+const {
+  getRecentPosts,
+  getAllLogs,
+  addNewLogs,
+} = require("../service/root.service");
 const path = require("path");
 const fetch = require("node-fetch");
 const FormData = require("form-data");
@@ -78,8 +82,12 @@ const rootController = {
                     if (data.success === true) {
                       resolve(data.data.url);
                     } else {
-                      resolve(data.images);
+                      if (data.message.include("repeated"))
+                        resolve(data.images);
                     }
+                  })
+                  .catch((err) => {
+                    reject(err);
                   });
               });
           })
@@ -95,6 +103,11 @@ const rootController = {
       });
 
     await next();
+  },
+
+  getAllLogs: async (ctx) => {
+    const allLogs = await getAllLogs();
+    ctx.body = allLogs;
   },
 };
 

@@ -1,18 +1,20 @@
-import { useEffect, useRef, Suspense, useState, createContext } from 'react';
-import { Outlet } from 'react-router-dom';
-import Loading from './components/common/Loading';
-import Navigation from './components/common/Navigation';
-import Footer from './components/common/Footer';
-import usePageView from './hooks/usePageView';
+import { useEffect, useRef, Suspense, useState, createContext } from "react";
+import { Outlet } from "react-router-dom";
+import Loading from "./components/common/Loading";
+import Navigation from "./components/common/Navigation";
+import Footer from "./components/common/Footer";
+import usePageView from "./hooks/usePageView";
+import LoadingSpinner from "./components/common/LoadingSpinner";
 
-export const ThemeContext = createContext('light');
+export const ThemeContext = createContext("light");
 function App() {
   // 插入页面浏览数埋点
   usePageView();
-  const [themeMode, setThemeMode] = useState('light');
+  const [themeMode, setThemeMode] = useState("light");
 
   return (
     <div className="App dark:bg-[--bg-dark-theme-color] dark:text-[#fafafa]">
+      <LoadingSpinner />
       <Navigation />
       {/* 填充物 */}
       <div className="h-[68.35px] lg:h-[80px]"></div>
@@ -34,7 +36,7 @@ function App() {
 export const BackTop = () => {
   const backtopRef = useRef(null);
   const handleBackHead = () => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   };
   useEffect(() => {
     const handleScroll = () => {
@@ -44,9 +46,9 @@ export const BackTop = () => {
         backtopRef.current.style.opacity = 0;
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   });
   return (

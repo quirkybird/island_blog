@@ -7,12 +7,12 @@ import Mkd from "../components/common/Mkd";
 import request from "../http/index";
 import { message } from "antd";
 import { Empty } from "antd";
-import CONFIG from "../constants/config";
 const NewBlog = () => {
   const newBlogFormRef = useRef(null);
   const [content, setContent] = useState("");
   const [onFocus, setOnFous] = useState(false);
   const [initialValues, setInitialValues] = useState({});
+  const uploadRef = useRef(null);
 
   // 读取是否是编辑模式
   const { id } = useParams();
@@ -33,9 +33,12 @@ const NewBlog = () => {
       });
     }
   }, [id, isEdit]);
-  // 定义函数来获得子组件传值
-  //这是一个callback函数，子组件完成指定操作后执行
-  const getFileName = ({ coverFileName, blogFileName }) => {
+  const handleSubmit = async (e) => {
+    // 阻止默认事件
+    e.preventDefault();
+    const { coverFileName, blogFileName } =
+      await uploadRef.current.handleUpload();
+    console.log(coverFileName, blogFileName);
     // 在上述文件传输完成过后继续继续执行代码，保证文件成功上传
     const newBlogForm = newBlogFormRef.current;
     const formdata = new FormData(newBlogForm).entries();
@@ -48,16 +51,6 @@ const NewBlog = () => {
     formObj.image = coverFileName;
 
     if (isEdit) {
-      // console.log(formObj);
-      // fetch(CONFIG.SERVER_URL + `/post/edit/${id}`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json", // 设置请求头为 JSON 格式
-      //   },
-      //   body: JSON.stringify(formObj), // 将数据转换为 JSON 字符串
-      // })
-      //   .then((res) => res.json())
-      //   .then((data) => );
       request
         .post(`/post/edit/${id}`, formObj, {
           headers: {
@@ -65,7 +58,7 @@ const NewBlog = () => {
           },
         })
         .then((data) => {
-          message.success(data.msg);
+          message.info(data?.msg || data);
         });
     } else {
       // 使用graphql上传文件
@@ -85,11 +78,10 @@ const NewBlog = () => {
   return (
     <main className="min-h-[calc(100vh-80px)] flex">
       <section className="flex-1 flex-shrink-0 max-w-3xl mx-auto px-4">
-        <>{isEdit ? "编辑模式" : "新增模式"}</>
-
         <div className="h-screen overflow-y-auto">
           <form
             ref={newBlogFormRef}
+            onSubmit={handleSubmit}
             className="space-y-6 bg-white p-8 rounded-lg shadow-md"
           >
             <div className="space-y-2">
@@ -102,7 +94,7 @@ const NewBlog = () => {
               <input
                 id="title"
                 name="title"
-                defaultValue={initialValues.title}
+                defaultValue={initialValues?.title}
                 required
                 type="text"
                 placeholder="请输入标题"
@@ -121,7 +113,7 @@ const NewBlog = () => {
                 id="descr"
                 required
                 name="descr"
-                defaultValue={initialValues.descr}
+                defaultValue={initialValues?.descr}
                 placeholder="粘贴文章简介..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition min-h-[120px]"
               />
@@ -137,7 +129,7 @@ const NewBlog = () => {
               <input
                 id="author"
                 name="author"
-                defaultValue={initialValues.author}
+                defaultValue={initialValues?.author}
                 required
                 type="text"
                 placeholder="请输入作者"
@@ -154,7 +146,7 @@ const NewBlog = () => {
               </label>
               <select
                 required
-                defaultValue={initialValues.categories}
+                defaultValue={initialValues?.categories}
                 id="categories"
                 name="categories"
                 placeholder="请选择类别"
@@ -176,7 +168,7 @@ const NewBlog = () => {
                 id="tags"
                 name="tags"
                 defaultValue={
-                  initialValues.tags &&
+                  initialValues?.tags &&
                   JSON.parse(initialValues.tags).join(",").toString()
                 }
                 required
@@ -199,10 +191,9 @@ const NewBlog = () => {
 
             <div className="space-y-2">
               <UploadFile
+                ref={uploadRef}
                 isEdit={isEdit}
                 data={initialValues}
-                uploadRef={newBlogFormRef}
-                getFileName={getFileName}
                 getMkdContent={getMkdContent}
               />
             </div>

@@ -1,6 +1,7 @@
 const connection = require("../../database");
 const fs = require("fs");
 const path = require("path");
+const { LOGS_TYPE } = require("../constant/logs");
 const rootService = {
   // 获取最近文章
   getRecentPosts: async () => {
@@ -8,6 +9,17 @@ const rootService = {
       "select * from blog_posts order by create_at DESC limit 12  offset 0";
     const [recentPost] = await connection.execute(sql);
     return recentPost;
+  },
+  // 获取全部日志
+  getAllLogs: async () => {
+    const sql = "select * from log_table order by log_timestamp DESC";
+    const [allLogs] = await connection.execute(sql);
+    return allLogs;
+  },
+  addNewLogs: async (type, message, userName) => {
+    const sql = `INSERT INTO log_table (log_level, log_message, user_name) 
+    VALUES (?, ?, ?)`;
+    await connection.execute(sql, [type, message, userName]);
   },
   // 获取全部文章
   getAllPosts: async () => {
@@ -21,8 +33,9 @@ const rootService = {
     const [post] = await connection.execute(sql, [post_id]);
     // 将content从文件名称换为文件具体内容
     try {
+      post[0].fileName = post[0].content;
       post[0].content = fs.readFileSync(
-        path.join("uploads/blog", `${post[0].content}`),
+        path.join(process.cwd(), "uploads/blog", `${post[0].content}`),
         "utf-8"
       );
       return post;
@@ -74,6 +87,7 @@ const rootService = {
         descr,
         image,
       ]);
+      rootService.addNewLogs(LOGS_TYPE.ADD, "文章" + title, "此夜曲中闻折柳");
       return { message: "文件已经成功上传" };
     } catch (error) {
       return { message: error.message };

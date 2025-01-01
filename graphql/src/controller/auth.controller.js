@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { PRIVATE_KEY } = require("../app/config");
+const { addNewLogs } = require("../service/root.service");
+const { LOGS_TYPE } = require("../constant/logs");
 
 class authController {
   login = async (ctx, next) => {
@@ -8,7 +10,7 @@ class authController {
       expiresIn: 60 * 60 * 24,
       algorithm: "RS256",
     });
-
+    await addNewLogs(LOGS_TYPE.LOGIN, " ", NAME);
     ctx.response.body = {
       id,
       NAME,

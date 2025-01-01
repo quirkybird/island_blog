@@ -1,6 +1,5 @@
 import axios from "axios";
 import CONFIG from "../constants/config";
-
 class qbRequest {
   constructor(baseURL, timeout) {
     this.instance = axios.create({
