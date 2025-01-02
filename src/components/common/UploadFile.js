@@ -78,9 +78,10 @@ const UploadFile = forwardRef((props, ref) => {
       if (isEdit && !imgfile && !mdfile) {
         console.error("未上传封面或文章内容文件");
         message.info("未上传封面或文章内容文件");
+
         return {
-          coverFileName: data.coverFileName,
-          blogFileName: data.blogFileName,
+          coverFileName: data.image,
+          blogFileName: data.fileName,
         };
       }
       // 设置mimeType类型值
@@ -156,6 +157,7 @@ const UploadFile = forwardRef((props, ref) => {
     };
     try {
       const res = await handleUploadFile();
+      console.log(res);
       return res;
     } catch (error) {
       console.error(error);

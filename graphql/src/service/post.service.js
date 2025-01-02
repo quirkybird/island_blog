@@ -32,12 +32,12 @@ class PostService {
       originData.push(old[key]);
     }
     const changeData = valueOfChange;
-    res.logs = {
+    res.logs = JSON.stringify({
       title: body.title,
       keyOfChange,
       originData,
       changeData,
-    };
+    });
     return res;
   }
 

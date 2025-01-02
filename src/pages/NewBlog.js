@@ -36,37 +36,42 @@ const NewBlog = () => {
   const handleSubmit = async (e) => {
     // 阻止默认事件
     e.preventDefault();
-    const { coverFileName, blogFileName } =
-      await uploadRef.current.handleUpload();
-    console.log(coverFileName, blogFileName);
-    // 在上述文件传输完成过后继续继续执行代码，保证文件成功上传
-    const newBlogForm = newBlogFormRef.current;
-    const formdata = new FormData(newBlogForm).entries();
-    const formObj = {};
-    for (const name of formdata) {
-      formObj[name[0]] = name[1];
-    }
-    formObj.tags = JSON.stringify(formObj.tags.split(","));
-    formObj.content = blogFileName;
-    formObj.image = coverFileName;
+    try {
+      let { coverFileName, blogFileName } =
+        await uploadRef.current.handleUpload();
+      if (!coverFileName) coverFileName = initialValues.image;
+      if (!blogFileName) blogFileName = initialValues.fileName;
+      // 在上述文件传输完成过后继续继续执行代码，保证文件成功上传
+      const newBlogForm = newBlogFormRef.current;
+      const formdata = new FormData(newBlogForm).entries();
+      const formObj = {};
+      for (const name of formdata) {
+        formObj[name[0]] = name[1];
+      }
+      formObj.tags = JSON.stringify(formObj.tags.split(","));
+      formObj.content = blogFileName;
+      formObj.image = coverFileName;
 
-    if (isEdit) {
-      request
-        .post(`/post/edit/${id}`, formObj, {
-          headers: {
-            "Content-Type": "application/json", // 设置请求头
+      if (isEdit) {
+        request
+          .post(`/post/edit/${id}`, formObj, {
+            headers: {
+              "Content-Type": "application/json", // 设置请求头
+            },
+          })
+          .then((data) => {
+            message.info(data?.msg || data);
+          });
+      } else {
+        // 使用graphql上传文件
+        createNewPost({
+          variables: {
+            post: formObj,
           },
-        })
-        .then((data) => {
-          message.info(data?.msg || data);
         });
-    } else {
-      // 使用graphql上传文件
-      createNewPost({
-        variables: {
-          post: formObj,
-        },
-      });
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -204,7 +209,7 @@ const NewBlog = () => {
           </form>
         </div>
 
-        {loading && (
+        {/* {loading && (
           <div className="text-center mt-8">
             <div className="text-2xl font-semibold text-gray-700">
               正在上传文章...
@@ -218,7 +223,7 @@ const NewBlog = () => {
               {data.createNewPost.message},文章发表成功
             </div>
           </div>
-        )}
+        )} */}
       </section>
       <section className="flex-[2_2_0%] overflow-x-auto">
         <div className="h-screen overflow-y-auto">

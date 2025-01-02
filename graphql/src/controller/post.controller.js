@@ -18,7 +18,9 @@ class PostController {
     const id = ctx.request.params.id;
     const postBody = ctx.request.body;
     const res = await PostService.editPost(id, postBody);
-    rootService.addNewLogs(LOGS_TYPE.EDIT, res.logs, "此夜曲中闻折柳");
+    console.log(res);
+    res.logs &&
+      rootService.addNewLogs(LOGS_TYPE.EDIT, res.logs, "此夜曲中闻折柳");
     ctx.response.body = res;
   }
 
