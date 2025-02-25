@@ -19,7 +19,7 @@ const IntroPost = ({ post }) => {
           />
         </div>
         <div className="p-1 m-1.5 ml-0">
-          <Tags tags={JSON.parse(post.tags)} />
+          <Tags tags={post?.tags} />
         </div>
         <h2 className="text-xl font-semibold">{post.title}</h2>
         <div className="text-sm text-gray-500 font-light py-4">

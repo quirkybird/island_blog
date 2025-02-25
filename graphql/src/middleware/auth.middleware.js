@@ -7,7 +7,7 @@ const { PUBLIC_KEY } = require("../app/config");
 const vertifyLogin = async (ctx, next) => {
   // 获取到用户名和密码
   const { username, password } = ctx.request.body;
-  console.log(username, password)
+  console.log(username, password);
   const user = await getUserName(username);
   // 判断用户数输入是否为空
   if (!username || !password) {

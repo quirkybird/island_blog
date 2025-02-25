@@ -76,13 +76,20 @@ const UploadFile = forwardRef((props, ref) => {
       const imgfile = imgInputRef.files[0];
       const mdfile = mdInputRef.files[0];
       if (isEdit && !imgfile && !mdfile) {
-        console.error("未上传封面或文章内容文件");
-        message.info("未上传封面或文章内容文件");
+        console.error("未更改封面或文章内容文件");
+        // message.info("未上传封面或文章内容文件");
 
         return {
           coverFileName: data.image,
           blogFileName: data.fileName,
         };
+      } else if (!imgfile || !mdfile) {
+        message.warning("未上传封面或文章内容文件");
+      }
+      if (isEdit && (!imgfile || !mdfile)) {
+        message.info(
+          "暂不支持单独修改文章或者封面，如需修改，请重新上传文章和封面"
+        );
       }
       // 设置mimeType类型值
       // img浏览器会自动识别

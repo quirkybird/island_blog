@@ -7,11 +7,17 @@ import Mkd from "../components/common/Mkd";
 import request from "../http/index";
 import { message } from "antd";
 import { Empty } from "antd";
+import { Select } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 const NewBlog = () => {
   const newBlogFormRef = useRef(null);
   const [content, setContent] = useState("");
-  const [onFocus, setOnFous] = useState(false);
+  const [tags, setTags] = useState([]);
   const [initialValues, setInitialValues] = useState({});
+  const [extraFromInfo, setExtraFromInfo] = useState({
+    tags: [],
+    categories: "",
+  });
   const uploadRef = useRef(null);
 
   // 读取是否是编辑模式
@@ -26,10 +32,17 @@ const NewBlog = () => {
   }, [loading]);
 
   useEffect(() => {
+    request.get("/tag/getAllTags").then((data) => {
+      setTags(data.detail);
+    });
     if (isEdit) {
       request.get(`/post/detail/${id}`).then((data) => {
         setInitialValues(data[0]);
-        setContent(data[0].content);
+        setExtraFromInfo({
+          tags: data[0]?.tags,
+          categories: data[0]?.categories,
+        });
+        setContent(data[0]?.content);
       });
     }
   }, [id, isEdit]);
@@ -44,11 +57,10 @@ const NewBlog = () => {
       // 在上述文件传输完成过后继续继续执行代码，保证文件成功上传
       const newBlogForm = newBlogFormRef.current;
       const formdata = new FormData(newBlogForm).entries();
-      const formObj = {};
+      const formObj = { ...extraFromInfo };
       for (const name of formdata) {
         formObj[name[0]] = name[1];
       }
-      formObj.tags = JSON.stringify(formObj.tags.split(","));
       formObj.content = blogFileName;
       formObj.image = coverFileName;
 
@@ -149,17 +161,22 @@ const NewBlog = () => {
               >
                 类别
               </label>
-              <select
+
+              <Select
                 required
-                defaultValue={initialValues?.categories}
+                style={{ width: "100%" }}
+                value={extraFromInfo?.categories}
                 id="categories"
                 name="categories"
+                onChange={(value) => {
+                  setExtraFromInfo({ ...extraFromInfo, categories: value });
+                }}
                 placeholder="请选择类别"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-              >
-                <option value="tech_blog">技术文章</option>
-                <option value="life_blog">生活文章</option>
-              </select>
+                options={[
+                  { label: "技术文章", value: "tech_blog" },
+                  { label: "生活文章", value: "life_blog" },
+                ]}
+              />
             </div>
 
             <div className="space-y-2">
@@ -169,29 +186,31 @@ const NewBlog = () => {
               >
                 标签
               </label>
-              <input
+              <Select
+                required
+                mode="multiple"
+                maxCount={5}
+                showSearch
+                optionFilterProp="tag_name"
+                allowClear
+                style={{ width: "100%" }}
+                suffixIcon={
+                  <>
+                    <span>{extraFromInfo?.tags?.length} / 5</span>
+                    <DownOutlined />
+                  </>
+                }
+                value={extraFromInfo?.tags}
                 id="tags"
                 name="tags"
-                defaultValue={
-                  initialValues?.tags &&
-                  JSON.parse(initialValues.tags).join(",").toString()
-                }
-                required
-                type="text"
-                onFocus={() => {
-                  setOnFous(true);
+                onChange={(value) => {
+                  if (value.length > 5) return;
+                  setExtraFromInfo({ ...extraFromInfo, tags: value });
                 }}
-                onBlur={() => {
-                  setOnFous(false);
-                }}
-                placeholder="请输入类别"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                placeholder="请选择标签"
+                fieldNames={{ label: "tag_name", value: "tag_id" }}
+                options={tags}
               />
-              {onFocus && (
-                <div className="font-mono text-sm text-orange-400">
-                  每个标签不超过4个字，使用英文","隔开
-                </div>
-              )}
             </div>
 
             <div className="space-y-2">

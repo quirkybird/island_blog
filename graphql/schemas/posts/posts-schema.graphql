@@ -1,7 +1,7 @@
 type Query {
   recentPost: [Post]!
   allPost: [Post]!
-  post(id: Int): [Post]!
+  post(id: ID!): [Post]!
   friendlinks: [Links]!
   messageStack: [Message]!
 }
@@ -11,7 +11,7 @@ type Mutation {
   createNewPost(post: UploadPost!): UploadMessage!
 }
 
-type UploadMessage{
+type UploadMessage {
   message: String!
 }
 
@@ -26,24 +26,24 @@ input UploadPost {
   title: String
   author: String
   categories: String
-  tags: String
+  tags: [Int!]
   content: String
   descr: String
   image: String
 }
 
 type Post {
-  id: Int,
-  title: String,
-  author: String,
-  categories: String,
-  tags: String,
+  id: ID
+  title: String
+  author: String
+  categories: String
+  tags: [String]
   content: String
-  date: String,
-  descr: String,
-  link: String,
-  image: String,
-  create_at: String,
+  date: String
+  descr: String
+  link: String
+  image: String
+  create_at: String
   update_at: String
 }
 

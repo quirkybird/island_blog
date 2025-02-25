@@ -1,9 +1,5 @@
 const fs = require("fs");
-const {
-  getRecentPosts,
-  getAllLogs,
-  addNewLogs,
-} = require("../service/root.service");
+const { getRecentPosts, getAllLogs } = require("../service/root.service");
 const path = require("path");
 const fetch = require("node-fetch");
 const FormData = require("form-data");
