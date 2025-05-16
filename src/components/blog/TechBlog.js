@@ -1,8 +1,9 @@
+import { memo } from "react";
 import Mkd from "../common/Mkd";
-import formatDate from "../../utils/formatDate"
+import formatDate from "../../utils/formatDate";
 import GiscusComment from "../common/GiscusComment";
 
-const TechBlog = ({ blog }) => {
+const TechBlog = memo(({ blog }) => {
   return (
     <main className="min-h-[calc(100vh-76px)]">
       <article className="max-w-[900px] m-auto relative">
@@ -18,6 +19,7 @@ const TechBlog = ({ blog }) => {
       </article>
     </main>
   );
-};
+});
 
+TechBlog.displayName = "TechBlog";
 export default TechBlog;
