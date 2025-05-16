@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Avatar } from "antd";
+import { Avatar, message } from "antd";
 import { MenuOutlined, MinusOutlined } from "@ant-design/icons";
+import request from "../../http";
+import { setUserInfo, getUserInfo } from "../../utils/storage";
+
 const Navigation = () => {
   const navLinks = [
     {
@@ -29,6 +32,8 @@ const Navigation = () => {
   );
   // 导航栏水平状态出现的tailwind字段设置
   let [menuTopShow, setMenuTopShow] = useState("");
+  // 用户信息
+  const [userInfo, setUserInfoState] = useState({});
   const handleMenuClick = () => {
     setMenuActive(!menuActive);
   };
@@ -58,6 +63,22 @@ const Navigation = () => {
       window.removeEventListener("scroll", onScroll);
     };
   }, [menuActive]);
+
+  useEffect(() => {
+    // 如果localStorage中没有用户信息才去请求
+    request
+      .get("http://localhost/user/2")
+      .then((res) => {
+        if (res) {
+          setUserInfoState(res[0]);
+          setUserInfo(res[0]); // 存储到localStorage
+        }
+      })
+      .catch((err) => {
+        message.error("获取用户信息失败");
+        console.error(err);
+      });
+  }, []);
 
   return (
     <header
@@ -93,16 +114,8 @@ const Navigation = () => {
             </li>
           ))}
           <span className="order-first pl-8 lg:order-last lg:p-0">
-            <Avatar
-              size="large"
-              src={
-                <img
-                  src="https://s2.loli.net/2025/03/23/YZN5are7E1Bwnot.jpg"
-                  alt="avatar"
-                />
-              }
-            />
-            <span className="ml-3">quirkybird</span>
+            <Avatar size="large" src={userInfo?.avatar} />
+            <span className="ml-3">{userInfo?.NAME}</span>
           </span>
         </ul>
         <span className="self-center lg:hidden">

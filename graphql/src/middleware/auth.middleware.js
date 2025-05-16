@@ -45,7 +45,7 @@ const vertifyAuth = async (ctx, next) => {
     ctx.user = res;
     await next();
   } catch (err) {
-    console.log(err);
+    console.log(err, "token解析失败");
     const error = new Error(errorType.UNAUTHORIZATION);
     ctx.app.emit("error", error, ctx);
   }

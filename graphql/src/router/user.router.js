@@ -14,7 +14,7 @@ userRouter.post("/", vertifyUser, handlePassword, UserController.create);
 // 删除用户
 userRouter.delete("/", vertifyAuth, UserController.deleteUser);
 // 修改用户信息
-userRouter.patch("/", vertifyAuth, UserController.modifyUserInfo);
+userRouter.post("/edit", vertifyAuth, UserController.modifyUserInfo);
 // 获取个人信息
 userRouter.get("/:userId", UserController.allInfo);
 // 用户列表

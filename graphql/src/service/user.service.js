@@ -7,12 +7,12 @@ class UserService {
     const statement =
       "INSERT INTO USER (NAME, real_name, password, email, about, avatar) VALUES(?, ?, ?, ?, ?, ?)";
     const res = await connection.execute(statement, [
-      username, 
-      real_name, 
-      password, 
-      email, 
-      about, 
-      avatar
+      username,
+      real_name,
+      password,
+      email,
+      about,
+      avatar,
     ]);
     return res[0];
   }

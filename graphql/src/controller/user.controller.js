@@ -37,8 +37,9 @@ class UserController {
   }
 
   async modifyUserInfo(ctx, next) {
-    const { userId, modifyArg } = ctx.request.body;
-    const res = await UserService.modifyUserInfo(userId, modifyArg);
+    const { user } = ctx;
+    const modifyArg = ctx.request.body;
+    const res = await UserService.modifyUserInfo(user.id, modifyArg);
     ctx.response.body = res;
   }
 }
