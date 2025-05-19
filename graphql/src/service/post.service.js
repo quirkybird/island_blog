@@ -16,6 +16,7 @@ class PostService {
 
   async editPost(id, body) {
     const old = await this.getPostItem(id);
+    console.log(body);
     const change = spanner.findChangedProperties(old, body);
     let keyOfChange = Object.keys(change);
 

@@ -11,8 +11,16 @@ function findChangedProperties(obj1, obj2) {
   // 遍历所有属性名
   allKeys.forEach((key) => {
     // 检查属性是否在两个对象中都存在
-
-    if (obj1[key] !== obj2[key]) {
+    const val1 =
+      typeof obj1[key] === "object" && obj1[key] !== null
+        ? JSON.stringify(obj1[key])
+        : obj1[key];
+    const val2 =
+      typeof obj2[key] === "object" && obj2[key] !== null
+        ? JSON.stringify(obj2[key])
+        : obj2[key];
+    if (val1 !== val2) {
+      if (key === "tagNames") return;
       changedProperties[key] = obj2[key]; // 记录变化的属性及其新值
     }
   });

@@ -1,25 +1,19 @@
-import { useEffect, useRef, useContext, useMemo } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import emoji from "remark-emoji";
 import hljs from "highlight.js/lib/common";
-import { ThemeContext } from "../../App";
-import "highlight.js/styles/atom-one-dark.min.css";
+import "highlight.js/styles/atom-one-dark.css";
 
 const Mkd = memo(({ markdown }) => {
-  const theme = useContext(ThemeContext);
   const lang = useRef();
   const langList = useRef([]);
 
   // 使用 useMemo 缓存这些回调函数
   const preEle = useMemo(() => {
-    return ({ children }) => (
-      <pre className="!bg-transparent" data-after-content=" ">
-        {children}
-      </pre>
-    );
+    return ({ children }) => <pre data-after-content=" ">{children}</pre>;
   }, []);
 
   const codeBlock = useMemo(() => {
@@ -38,10 +32,25 @@ const Mkd = memo(({ markdown }) => {
 
     const initHighlight = () => {
       langList.current = [];
-      hljs.configure({ ignoreUnescapedHTML: true });
+      // 配置highlight.js
+      hljs.configure({
+        ignoreUnescapedHTML: true,
+        languages: [
+          "javascript",
+          "java",
+          "python",
+          "cpp",
+          "css",
+          "xml",
+          "typescript",
+          "bash",
+        ], // 指定要支持的语言
+      });
 
       const blocks = document.querySelectorAll("pre code");
       blocks.forEach((block) => {
+        // 强制刷新高亮
+        block.className = block.className.replace("hljs", "");
         hljs.highlightElement(block);
       });
 
@@ -51,9 +60,9 @@ const Mkd = memo(({ markdown }) => {
       });
     };
 
-    // 使用 RAF 确保在下一帧执行高亮
+    // 每次markdown内容更新时都需要重新高亮
     requestAnimationFrame(initHighlight);
-  }, []); // 只在首次渲染时执行
+  }, [markdown]); // 添加markdown作为依赖
 
   const memoizedMarkdown = useMemo(
     () => (
@@ -72,8 +81,8 @@ const Mkd = memo(({ markdown }) => {
     <section
       className="prose max-w-none p-8 prose-img:block prose-p:text-[14px] lg:prose-p:text-[15px]
     prose-img:m-auto prose-img:shadow prose-img:rounded-md prose-pre:text-[14px] prose-blockquote:break-all
-    prose-a:text-[#3bb0f0] dark:prose-invert prose-pre:!bg-transparent [&_pre]:!bg-transparent
-    [&_code]:!bg-transparent dark:prose-pre:!bg-[#282c34] prose-pre:!bg-[#fafafa]"
+    prose-a:text-[#3bb0f0] dark:prose-invert dark:text-gray-300 dark:prose-pre:bg-[#1e293b] prose-pre:bg-[#F2F5F7]
+    prose-pre:!p-0 prose-code:!p-4" // 添加padding控制
     >
       {memoizedMarkdown}
     </section>
