@@ -57,46 +57,84 @@ const rootController = {
       ctx.body = { msg: "文章没有图片" };
       return;
     }
+
+    // 添加fetch配置
+    const fetchConfig = {
+      timeout: 10000, // 10秒超时
+      retries: 3, // 重试3次
+      retryDelay: 1000, // 重试间隔1秒
+    };
+
+    // 重试函数
+    const fetchWithRetry = async (url, retries = fetchConfig.retries) => {
+      try {
+        const response = await fetch(url, {
+          timeout: fetchConfig.timeout,
+        });
+        return await response.buffer();
+      } catch (error) {
+        if (retries > 0) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, fetchConfig.retryDelay)
+          );
+          return fetchWithRetry(url, retries - 1);
+        }
+        throw error;
+      }
+    };
+
     const fetchImgSrc = (urls) => {
       return urls.map(
         (url) =>
-          new Promise((resolve, reject) => {
-            fetch(url)
-              .then((res) => res.buffer())
-              .then((data) => {
-                const imgFormData = new FormData();
-                imgFormData.append("smfile", data, `${new Date().getTime()}`);
-                fetch("https://sm.ms/api/v2/upload", {
-                  method: "POST",
-                  headers: {
-                    Authorization: "UdKmYqnlvx5YfBtfwD44vdyYZBTLGEgv",
-                  },
-                  body: imgFormData,
-                })
-                  .then((res) => res.json())
-                  .then((data) => {
-                    if (data.success === true) {
-                      resolve(data.data.url);
-                    } else {
-                      if (data.message.include("repeated"))
-                        resolve(data.images);
-                    }
-                  })
-                  .catch((err) => {
-                    reject(err);
-                  });
+          new Promise(async (resolve, reject) => {
+            try {
+              // 使用新的fetch函数
+              const data = await fetchWithRetry(url);
+              const imgFormData = new FormData();
+              imgFormData.append("smfile", data, `${new Date().getTime()}`);
+
+              const smResponse = await fetch("https://sm.ms/api/v2/upload", {
+                method: "POST",
+                headers: {
+                  Authorization: "UdKmYqnlvx5YfBtfwD44vdyYZBTLGEgv",
+                },
+                body: imgFormData,
+                timeout: fetchConfig.timeout,
               });
+
+              const result = await smResponse.json();
+
+              if (result.success === true) {
+                resolve(result.data.url);
+              } else if (
+                result.message &&
+                result.message.includes("repeated")
+              ) {
+                resolve(result.images);
+              } else {
+                reject(new Error(result.message));
+              }
+            } catch (err) {
+              console.error(`Failed to process image ${url}:`, err);
+              // 如果图片处理失败，返回原始URL
+              resolve(url);
+            }
           })
       );
     };
-    const allImgDataPromise = fetchImgSrc(urls);
-    await Promise.all(allImgDataPromise)
-      .then((data) => {
-        ctx.body = data;
-      })
-      .catch((err) => {
-        ctx.body = err;
-      });
+
+    try {
+      const allImgDataPromise = fetchImgSrc(urls);
+      const results = await Promise.all(allImgDataPromise);
+      ctx.body = results;
+    } catch (err) {
+      ctx.status = 500;
+      ctx.body = {
+        success: false,
+        message: "图片上传处理失败",
+        error: err.message,
+      };
+    }
 
     await next();
   },
