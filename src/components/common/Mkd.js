@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import emoji from "remark-emoji";
 import hljs from "highlight.js/lib/common";
-import "highlight.js/styles/atom-one-dark.css";
+import "highlight.js/styles/atom-one-light.css";
 
 const Mkd = memo(({ markdown }) => {
   const lang = useRef();
@@ -82,7 +82,7 @@ const Mkd = memo(({ markdown }) => {
       className="prose max-w-none p-8 prose-img:block prose-p:text-[14px] lg:prose-p:text-[15px]
     prose-img:m-auto prose-img:shadow prose-img:rounded-md prose-pre:text-[14px] prose-blockquote:break-all
     prose-a:text-[#3bb0f0] dark:prose-invert dark:text-gray-300 dark:prose-pre:bg-[#1e293b] prose-pre:bg-[#F2F5F7]
-    prose-pre:!p-0 prose-code:!p-4" // 添加padding控制
+    prose-pre:!p-0 prose-code:!p-4"
     >
       {memoizedMarkdown}
     </section>
