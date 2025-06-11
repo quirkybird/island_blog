@@ -8,8 +8,8 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import { LoadingProvider } from "./components/common/LoadingContext";
 
 const client = new ApolloClient({
-  uri: "http://localhost:80/graphql",
-  // uri: 'https://server.yamorz.top/graphql',
+  // uri: "http://localhost:80/graphql",
+  uri: "https://server.yamorz.top/graphql",
   cache: new InMemoryCache(),
 });
 

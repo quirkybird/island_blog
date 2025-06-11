@@ -28,3 +28,5 @@ yarn-error.log*
 *.key
 *.crt
 uploads/
+docker-compose.yaml
+Dockerfile

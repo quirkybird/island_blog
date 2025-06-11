@@ -14,7 +14,7 @@ const IntroPost = ({ post }) => {
         <div className="w-full">
           <img
             className="rounded-md"
-            data-src={`http://localhost:80/image/${post.image}`}
+            data-src={`https://server.yamorz.top/image/${post.image}`}
             alt={post.title}
           />
         </div>
