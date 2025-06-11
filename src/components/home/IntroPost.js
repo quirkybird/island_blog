@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Tags from "../common/Tags";
 import formDate from "../../utils/formatDate";
 import createObserver from "../../utils/lazyLoadingImg";
+
 const IntroPost = ({ post }) => {
   useEffect(() => {
     // 执行交叉观察代码
@@ -19,6 +20,7 @@ const IntroPost = ({ post }) => {
           />
         </div>
         <div className="p-1 m-1.5 ml-0">
+
           <Tags tags={post?.tags} />
         </div>
         <h2 className="text-xl font-semibold">{post.title}</h2>

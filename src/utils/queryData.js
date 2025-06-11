@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 // 查询最近的文章
 export const GET_RECENT_POSTS = gql`
   query getRecnetPost {
@@ -82,6 +82,7 @@ export const GET_MESSAGE_STACK = gql`
   }
 `;
 
+// 添加新文章
 export const CREATE_NEW_POST = gql`
   mutation CreateNewPost($post: UploadPost!) {
     createNewPost(post: $post) {
