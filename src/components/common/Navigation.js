@@ -67,7 +67,7 @@ const Navigation = () => {
   useEffect(() => {
     // 如果localStorage中没有用户信息才去请求
     request
-      .get("http://localhost/user/2")
+      .get("https://server.yamorz.top/user/2")
       .then((res) => {
         if (res) {
           setUserInfoState(res[0]);
