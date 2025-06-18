@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'SourceHanSansCN';
-  src: url('./font//SourceHanSansSC.woff2') format('opentype');
+  font-family: "SourceHanSansCN";
+  src: url("./font//SourceHanSansSC.woff2") format("opentype");
 }
 @font-face {
-  font-family: 'SF';
-  src: url('../assets//font//sf-pro-icons_regular.woff2') format('woff2');
+  font-family: "SF";
+  src: url("../assets//font//sf-pro-icons_regular.woff2") format("woff2");
 }
 @font-face {
-  font-family: 'Mono';
-  src: url('../assets/font/RobotoMono-Medium.ttf') format('ttf');
+  font-family: "Mono";
+  src: url("../assets/font/RobotoMono-Medium.ttf") format("ttf");
 }
 
 @font-face {
-  font-family: 'FiraCode';
-  src: url('./font/FiraCode-Regular.woff2') format('woff2');
+  font-family: "FiraCode";
+  src: url("./font/FiraCode-Regular.woff2") format("woff2");
 }
 
 html {
-  font-family: 'SourceHanSansCN', system-ui, -apple-system, PingFang SC,
-    'Microsoft YaHei', Segoe UI, Roboto, Helvetica, noto sans sc,
-    hiragino sans gb, 'sans-serif', Apple Color Emoji, Segoe UI Emoji,
+  font-family: "SourceHanSansCN", system-ui, -apple-system, PingFang SC,
+    "Microsoft YaHei", Segoe UI, Roboto, Helvetica, noto sans sc,
+    hiragino sans gb, "sans-serif", Apple Color Emoji, Segoe UI Emoji,
     Not Color Emoji;
 }
 /* 设置代码的字体 */
 .intro {
-  font-family: 'SF', system-ui;
+  font-family: "SF", system-ui;
 }
 body {
   @apply bg-[#FCFCFC];
 }
 pre {
-  font-family: 'FiraCode', system-ui, -apple-system;
+  font-family: "FiraCode", system-ui, -apple-system;
 }
 
 :root {
@@ -70,12 +70,12 @@ p code {
   background-color: #bae6fd;
   display: inline-block;
   border-radius: 4px;
-  padding: 0.5px 2px;
+  padding: 0 2px;
   margin: 0 2px;
 }
 p code::before,
 p code::after {
-  content: '';
+  content: "";
   display: none;
   height: 0;
 }
@@ -149,7 +149,7 @@ pre::after {
   position: absolute;
   left: 20px;
   bottom: -18px;
-  content: '';
+  content: "";
   width: 0;
   height: 0;
   border-left: 10px solid transparent;

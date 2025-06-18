@@ -37,6 +37,7 @@ export const GET_POST_DETAIL = gql`
       content
       create_at
       update_at
+      summary_text
     }
   }
 `;

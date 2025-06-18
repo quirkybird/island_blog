@@ -16,18 +16,18 @@ const BlogDetail = () => {
   });
   const [showShare, setShowShare] = useState(false);
   if (loading) return <Loading />;
-  const post = data.post[0];
+  const post = data.post;
   // 设置网站标题 title
   document.title = post.title;
   return (
     <>
       {/* 添加分享按钮 */}
-      <button
+      {/* <button
         onClick={() => setShowShare(true)}
         className="fixed left-4 bottom-4 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 z-40"
       >
         分享
-      </button>
+      </button> */}
 
       {/* 分享弹窗 */}
       {showShare && (

@@ -79,7 +79,7 @@ const Mkd = memo(({ markdown }) => {
 
   return (
     <section
-      className="prose max-w-none p-8 prose-img:block prose-p:text-[14px] lg:prose-p:text-[15px]
+      className="prose max-w-none p-[32px_14px] prose-img:block prose-p:text-[16px] lg:prose-p:text-[15px]
     prose-img:m-auto prose-img:shadow prose-img:rounded-md prose-pre:text-[14px] prose-blockquote:break-all
     prose-a:text-[#3bb0f0] dark:prose-invert dark:text-gray-300 dark:prose-pre:bg-[#1e293b] prose-pre:bg-[#F2F5F7]
     prose-pre:!p-0 prose-code:!p-4"

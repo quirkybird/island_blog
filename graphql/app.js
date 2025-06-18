@@ -14,7 +14,7 @@ const router = require("./src/router/root.router");
 const app = require("./src/app");
 // 连接数据库
 require("./database");
-const PORT = 80;
+const PORT = 3000;
 
 //开启https服务
 // 签名配置

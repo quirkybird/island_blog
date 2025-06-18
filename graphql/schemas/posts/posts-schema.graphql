@@ -1,7 +1,7 @@
 type Query {
   recentPost: [Post]!
   allPost: [Post]!
-  post(id: ID!): [Post]!
+  post(id: ID!): Post!
   friendlinks: [Links]!
   messageStack: [Message]!
 }
@@ -45,6 +45,7 @@ type Post {
   image: String
   create_at: String
   update_at: String
+  summary_text: String # ai总结文本
 }
 
 type Links {

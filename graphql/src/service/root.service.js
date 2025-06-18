@@ -4,6 +4,8 @@ const path = require("path");
 const { LOGS_TYPE } = require("../constant/logs");
 const Genid = require("../utils/generateId");
 const TagsService = require("./tags.service");
+const { generateSummary } = require("../../ai/index.cjs");
+const { outputPostContent } = require("../utils/outputPostContent");
 
 const rootService = {
   // 获取最近文章
@@ -57,7 +59,7 @@ ORDER BY p.create_at DESC;`;
         path.join(process.cwd(), "uploads/blog", `${post[0].content}`),
         "utf-8"
       );
-      return post;
+      return post[0];
     } catch (error) {
       console.log(error);
     }
@@ -113,6 +115,10 @@ ORDER BY p.create_at DESC;`;
       ]);
       TagsService.InsertTagRelation(tagsParams);
       rootService.addNewLogs(LOGS_TYPE.ADD, "文章" + title, "此夜曲中闻折柳");
+      // 获取文章具体内容
+      const postDetail = outputPostContent(content);
+      // 生成AI总结摘要
+      await generateSummary(genid, postDetail);
       return { message: "文件已经成功上传" };
     } catch (error) {
       console.log(error.message);

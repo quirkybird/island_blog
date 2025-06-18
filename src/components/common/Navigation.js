@@ -65,7 +65,6 @@ const Navigation = () => {
   }, [menuActive]);
 
   useEffect(() => {
-    // 如果localStorage中没有用户信息才去请求
     request
       .get("https://server.yamorz.top/user/2")
       .then((res) => {
@@ -84,15 +83,13 @@ const Navigation = () => {
     <header
       className={`fixed left-0 right-0 z-50 ${menuTopShow}  transition-all duration-600 ease-in-out dark:bg-[--bg-dark-theme-color] bg-white`}
     >
-      <nav className="flex justify-between items-center px-3 lg:px-10 py-5 shadow-sm dark:shadow-[#334155] relative">
+      <nav className="flex justify-between items-center px-3 lg:px-10 py-2 shadow-sm dark:shadow-[#334155] relative">
         <Link to="/home">
-          <span className="absolute top-[10px] left-[20px]">
-            <img
-              className="w-[46px] lg:w-[60px]"
-              src={require("../../assets/images/logo.webp")}
-              alt="logo"
-            />
-          </span>
+          <img
+            className="w-[46px] lg:w-[60px]"
+            src={require("../../assets/images/logo.webp")}
+            alt="logo"
+          />
         </Link>
         <ul
           className={`flex flex-col mr-4 h-[calc(100vh-68.35px)] font-bold  absolute top-[68.35px] dark:bg-[--bg-dark-theme-color] bg-white lg:flex-row lg:static lg:items-center lg:h-full ${menuActiveStr} transition-all duration-300 ease-in-out`}
@@ -118,18 +115,26 @@ const Navigation = () => {
             <span className="ml-3">{userInfo?.NAME}</span>
           </span>
         </ul>
-        <span className="self-center lg:hidden">
-          {menuActive ? (
-            <MenuOutlined
-              style={{ fontSize: "26px" }}
-              onClick={handleMenuClick}
-            />
-          ) : (
-            <MinusOutlined
-              style={{ fontSize: "26px" }}
-              onClick={handleMenuClick}
-            />
-          )}
+        <span
+          className="self-center lg:!hidden"
+          style={{
+            display: "inline-flex",
+            marginRight: "10px",
+            padding: 10,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            fontSize: "1.2em",
+            border: "none",
+            cursor: "pointer",
+            textDecoration: "none",
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)", // 注意：JS中是驼峰命名
+          }}
+        >
+          <MenuOutlined
+            style={{ fontSize: "16px" }}
+            onClick={handleMenuClick}
+          />
         </span>
       </nav>
     </header>
