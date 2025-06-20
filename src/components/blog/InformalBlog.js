@@ -13,7 +13,7 @@ const InformalBlog = ({ blog }) => {
           <span>{formatDate(blog.create_at)}</span>
           <span> | 字数检测：{blog.content.length}</span>
         </section>
-        <section className="px-[14px]">
+        <section>
           <SummaryCard text={blog.summary_text} />
         </section>
         {/* markdown组件，传入数据可以直接按照markdow渲染 */}
