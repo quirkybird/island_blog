@@ -17,7 +17,7 @@ function App() {
       <LoadingSpinner />
       <Navigation />
       {/* 填充物 */}
-      <div className="h-[68.35px] lg:h-[80px]"></div>
+      <div className="h-[68.35px] lg:h-[62px]"></div>
       <Suspense fallback={<Loading />}>
         <ThemeContext.Provider value={themeMode}>
           <Outlet />

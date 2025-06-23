@@ -15,12 +15,12 @@ const TechBlog = memo(({ blog }) => {
         </section>
         <section className="px-[14px]">
           <SummaryCard text={blog.summary_text} />
-          {/* markdown组件，传入数据可以直接按照markdow渲染 */}
-          <Mkd markdown={blog.content} />
-          <span className="px-[14px]">
-            更新时间：{formatDate(blog.update_at)}
-          </span>
-          <div className="px-[14px]">
+        </section>
+        {/* markdown组件，传入数据可以直接按照markdow渲染 */}
+        <Mkd markdown={blog.content} />
+        <section className="px-[14px]">
+          <span>更新时间：{formatDate(blog.update_at)}</span>
+          <div>
             <GiscusComment />
           </div>
         </section>
