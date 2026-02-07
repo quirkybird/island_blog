@@ -1,0 +1,128 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navigation from '../../components/common/Navigation.astro';
+import Footer from '../../components/common/Footer.astro';
+import GiscusComment from '../../components/common/GiscusComment.astro';
+import Mkd from '../../components/common/Mkd.tsx';
+import SummaryCard from '../../components/common/SummaryCard.tsx';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data, slug }) => {
+    const t = (data?.title ?? '').toLowerCase();
+    const s = (slug ?? '').toLowerCase();
+    return !(t.startsWith('todo') || s.startsWith('todo'));
+  });
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const safeData = {
+  title: post.data?.title || '无标题',
+  date: post.data?.date || new Date(),
+  categories: post.data?.categories || [],
+  tags: post.data?.tags || [],
+  excerpt: post.data?.excerpt || '',
+  author: post.data?.author || '未知作者'
+};
+
+const formatDate = (date) => {
+  if (!date) return '无日期';
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${year}/${month}/${day}`;
+};
+
+const isTechBlog = safeData.categories.includes('tech_blog');
+// 字数检测（按 Markdown 源文长度）
+const contentLength = (post.body ?? '').length;
+
+const site = import.meta.env.SITE?.replace(/\/$/, '') || 'http://localhost:3000';
+const canonicalUrl = `${site}/blog/${post.slug}`;
+const publishedTime = safeData.date instanceof Date ? safeData.date.toISOString() : new Date(safeData.date).toISOString();
+const description = safeData.excerpt || `${safeData.title} - quirkybird`;
+const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data.cover : `${site}${post.data.cover.startsWith('/') ? '' : '/'}${post.data.cover}`) : undefined;
+---
+
+<MainLayout
+  title={`${safeData.title} - quirkybird`}
+  description={description}
+  image={image}
+  canonicalUrl={canonicalUrl}
+  ogType="article"
+  publishedTime={publishedTime}
+>
+  <Navigation />
+  <div class="h-[68.35px] lg:h-[80px]"></div>
+
+  <main class="min-h-[calc(100vh-76px)]">
+    <article class="max-w-[900px] m-auto relative">
+      <section class={`${isTechBlog ? 'text-center' : 'text-center md:text-start'} mt-20 px-5`}>
+        <h1 class="text-2xl lg:text-3xl font-[800] mb-3">{safeData.title}</h1>
+        <span>{formatDate(safeData.date)}</span>
+        <span> | 字数检测：{contentLength}</span>
+      </section>
+
+      <!-- {post.data?.cover && (
+        <section class="px-5">
+          <div class="relative w-full rounded-md overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+            <img
+              class="absolute inset-0 w-full h-full object-cover"
+              src={post.data.cover.startsWith('http')
+                ? post.data.cover
+                : '/' + (post.data.cover.startsWith('/') ? post.data.cover.slice(1) : (post.data.cover.includes('/') ? post.data.cover : `images/cover/${post.data.cover}`))
+              }
+              alt={post.data.title}
+              loading="lazy"
+            />
+          </div>
+        </section>
+      )} -->
+
+      <section class="px-[14px]">
+        <SummaryCard client:only="react" text={post.data?.summary_text ?? ''} />
+      </section>
+
+      {isTechBlog ? (
+        // 技术文章：直接渲染 Markdown
+        <Mkd client:only="react" markdown={post.body ?? ''} />
+      ) : (
+        // 非技术文章：卡片式包裹，增加圆角与阴影
+        <div class="rounded-md shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] my-5" style={{ fontSize: '16px' }}>
+          <Mkd client:only="react" markdown={post.body ?? ''} />
+        </div>
+      )}
+
+      <span class="px-5">更新时间：{formatDate(safeData.date)}</span>
+
+      <GiscusComment />
+    </article>
+  </main>
+
+  <Footer />
+</MainLayout>
+
+<style>
+  /* Markdown content styling */
+  article :global(.prose) {
+    @apply max-w-none;
+  }
+  article :global(.prose pre) {
+    @apply bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto;
+  }
+  article :global(.prose code) {
+    @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded;
+  }
+  article :global(.prose pre code) {
+    @apply bg-transparent px-0 py-0;
+    font-family: 'FiraCode', system-ui, -apple-system, sans-serif;
+  }
+  article :global(.prose img) {
+    @apply rounded-lg;
+  }
+</style>

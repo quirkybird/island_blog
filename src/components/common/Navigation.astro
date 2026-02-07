@@ -1,0 +1,96 @@
+---
+const navLinks = [
+  {
+    title: "主页",
+    path: "/",
+  },
+  {
+    title: "博客",
+    path: "/blog",
+  },
+  // {
+  //   title: "友链",
+  //   path: "/friends-links",
+  // },
+  // {
+  //   title: "留言堆",
+  //   path: "/message-stack",
+  // },
+];
+
+const userInfo = { NAME: 'quirkybird', avatar: '/images/logo.webp' };
+---
+
+<header id="main-header" class="fixed left-0 right-0 z-50 transition-all duration-600 ease-in-out dark:bg-[--bg-dark-theme-color] bg-white translate-y-0">
+  <nav class="flex justify-between items-center px-3 lg:px-10 py-5 shadow-sm dark:shadow-[#334155] relative">
+    <a href="/">
+      <span class="absolute top-[10px] left-[20px]">
+        <img
+          class="w-[46px] lg:w-[60px]"
+          src={userInfo.avatar}
+          alt="logo"
+        />
+      </span>
+    </a>
+    <ul
+      id="mobile-menu"
+      class="mobile-menu flex flex-col mr-4 h-[calc(100vh-68.35px)] font-bold absolute top-[68.35px] dark:bg-[--bg-dark-theme-color] bg-white lg:flex-row lg:static lg:items-center lg:h-full -left-80 transition-all duration-300 ease-in-out"
+    >
+      {navLinks.map((link) => (
+        <li class="px-10 py-3 pr-40 text-lg hover:text-blue-300 order-none lg:pr-20 lg:px-0 lg:py-0">
+          <a href={link.path}>{link.title}</a>
+        </li>
+      ))}
+      <span class="order-first pl-8 lg:order-last lg:p-0">
+        <div class="inline-flex items-center">
+          <img class="w-10 h-10 rounded-full" src="https://s2.loli.net/2025/03/23/YZN5are7E1Bwnot.jpg" alt="avatar" />
+          <span class="ml-3">{userInfo.NAME}</span>
+        </div>
+      </span>
+    </ul>
+    <span id="menu-toggle" class="self-center lg:hidden cursor-pointer">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="w-7 h-7"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </span>
+  </nav>
+</header>
+
+<script>
+  // Mobile menu toggle
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  let menuActive = false;
+
+  menuToggle?.addEventListener('click', () => {
+    menuActive = !menuActive;
+    if (mobileMenu) {
+      mobileMenu.classList.toggle('-left-80');
+      mobileMenu.classList.toggle('left-0');
+    }
+  });
+
+  // Scroll hide/show logic
+  let lastScrollTop = 0;
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const header = document.getElementById('main-header');
+
+    if (scrollTop >= 70) {
+      header?.classList.add('-translate-y-[80px]');
+      header?.classList.remove('translate-y-0');
+    } else {
+      header?.classList.remove('-translate-y-[80px]');
+      header?.classList.add('translate-y-0');
+    }
+
+    lastScrollTop = scrollTop;
+  });
+</script>

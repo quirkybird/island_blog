@@ -1,0 +1,57 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navigation from '../../components/common/Navigation.astro';
+import Footer from '../../components/common/Footer.astro';
+import { getCollection } from 'astro:content';
+
+// Get all blog posts sorted by date
+const allPosts = (await getCollection('blog', ({ data, slug }) => {
+  const t = (data?.title ?? '').toLowerCase();
+  const s = (slug ?? '').toLowerCase();
+  return !(t.startsWith('todo') || s.startsWith('todo'));
+})).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+const formatDate = (date: Date) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${year}/${month}/${day}`;
+};
+---
+
+<MainLayout title="Blog - quirkybird">
+  <Navigation />
+  <div class="h-[68.35px] lg:h-[80px]"></div>
+
+  <article class="sm:w-[620px] min-h-[calc(100vh-80px)] p-5 m-auto">
+    <section>
+      <h1 class="lg:text-5xl text-3xl font-black text-center py-8 tracking-wider">BLOG</h1>
+      <p class="text-center lg:text-xl">“行到水穷处，坐看云起时。”</p>
+      <span class="inline-block w-full h-[1px] bg-gray-300 my-8 dark:bg-gray-600"></span>
+    </section>
+
+    <section>
+      <ul>
+        {allPosts.map((post) => (
+          <li key={post.id} class="pb-2.5 sm:flex justify-between">
+            <h1>
+              <span>&gt;</span>
+              <a href={`/blog/${post.slug || post.id}`}>
+              
+                <span class="pl-5 tracking-wider hover:text-blue-300">
+                  {post.data.title}
+                </span>
+              </a>
+            </h1>
+            <span class="pl-7 text-gray-500 shrink-0">{formatDate(post.data.date)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </article>
+
+  <Footer />
+</MainLayout>

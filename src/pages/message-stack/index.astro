@@ -1,0 +1,331 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navigation from '../../components/common/Navigation.astro';
+import Footer from '../../components/common/Footer.astro';
+---
+
+<MainLayout title="留言堆 - quirkybird">
+  <Navigation />
+  <div class="h-[68.35px] lg:h-[80px]"></div>
+
+  <main class="min-h-[calc(100vh-80px)] relative overflow-hidden" id="message-stack">
+    <div id="input-container" class="absolute z-10 w-1/2 border-slate-400 left-1/2 -translate-x-1/2 top-1/4">
+      <span class="hidden lg:inline">Shift + Q 就可以留言啦(☆▽☆), 再按一次回到这里</span>
+      <input
+        id="message-input"
+        type="text"
+        class="w-full hidden outline-2 outline-dashed outline-[#2d7cee] px-4 py-2"
+        placeholder="/输入完按Enter留言, 试试http://或者https://输入图片"
+      />
+    </div>
+    <div id="discuss-container" class="w-full h-[calc(100vh-80px)] relative"></div>
+  </main>
+
+  <Footer />
+</MainLayout>
+
+<script>
+  // Matter.js message stack implementation
+  import('https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js');
+
+  const colors = ["#ea8777", "#97cce8", "#f4b9c2", "#a6ec99", "#D4A3D9", "#fcf0a4"];
+
+  function getRandomNumber(min, max, excludedRange) {
+    let num;
+    if (!excludedRange) {
+      num = Math.floor(Math.random() * (max - min + 1) + min);
+    } else {
+      do {
+        num = Math.floor(Math.random() * (max - min + 1) + min);
+      } while (num >= excludedRange[0] && num <= excludedRange[1]);
+    }
+    return num;
+  }
+
+  function getCookie(name) {
+    const cookieString = document.cookie;
+    const cookies = cookieString.split('; ');
+    for (let cookie of cookies) {
+      const [cookieName, cookieValue] = cookie.split('=');
+      if (cookieName === name) {
+        return cookieValue;
+      }
+    }
+    return null;
+  }
+
+  function createBubbleMessage(element, message) {
+    if (message === "" || message.length > 11) {
+      return { body: null, text: null, tips: "输入不符合规范哈" };
+    }
+
+    const text = document.createElement("div");
+    text.className = "bubble absolute cursor-pointer select-none";
+    const randomColor = colors[getRandomNumber(0, 5)];
+    text.style.backgroundColor = randomColor;
+    text.style.padding = "10px 20px";
+    text.style.borderRadius = "20px";
+    text.style.fontSize = "16px";
+    text.innerHTML = message;
+    element.appendChild(text);
+
+    const viewWidth = window.innerWidth - 5;
+    const randomPosition = getRandomNumber(1, 9);
+    const body = {
+      x: viewWidth * randomPosition * 0.1,
+      y: 60,
+      width: 200,
+      height: 60,
+      angle: (Math.PI / 180) * getRandomNumber(-45, 45),
+      chamfer: { radius: 20 },
+      frictionAir: 0,
+      restitution: 0.2,
+      mass: 10,
+    };
+
+    return { body, text, tips: "成功添加留言，欢迎经常来玩儿" };
+  }
+
+  async function createImgMessage(element, url) {
+    const img = document.createElement("img");
+    let tips = "";
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: "image/*",
+        },
+      });
+
+      if (!response.headers.get("Content-Type")?.startsWith("image")) {
+        tips = "我的朋友嘛, 请上传图片";
+        return { body: null, img, tips };
+      } else if (!response.ok) {
+        throw new Error("网络错误");
+      }
+
+      const blob = await response.blob();
+      const objectURL = URL.createObjectURL(blob);
+      img.src = objectURL;
+      img.style.position = "absolute";
+      img.style.cursor = "pointer";
+      img.style.pointerEvents = "none";
+
+      await new Promise((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      });
+
+      if (img.width >= 200) {
+        img.width = 200;
+      } else if (img.width >= 100) {
+        img.width = 100;
+      }
+
+      const viewWidth = window.innerWidth - 5;
+      const randomPosition = getRandomNumber(1, 9);
+      const body = {
+        x: viewWidth * randomPosition * 0.1,
+        y: 60,
+        width: img.width,
+        height: img.height,
+        angle: (Math.PI / 180) * getRandomNumber(-45, 45),
+        frictionAir: 0,
+        restitution: 0.2,
+        mass: 10,
+      };
+
+      tips = "成功添加留言，欢迎经常来玩儿";
+      return { body, img, tips };
+    } catch (error) {
+      if (error instanceof Error && error.message === "Failed to fetch") {
+        tips = "出现了未知错误，检查一下地址是否正确, 可能是地址存在跨域阻止";
+      }
+      return { body: null, img, tips };
+    }
+  }
+
+  // Initialize when Matter.js loads
+  setTimeout(async () => {
+    const Matter = window.Matter;
+    if (!Matter) {
+      console.error('Matter.js failed to load');
+      return;
+    }
+
+    const { Engine, Bodies, Composite, Mouse, MouseConstraint } = Matter;
+    const discussContainer = document.getElementById('discuss-container');
+    const input = document.getElementById('message-input');
+    const inputContainer = document.getElementById('input-container');
+
+    if (!discussContainer) return;
+
+    const viewWidth = window.innerWidth - 5;
+    const viewHeight = window.innerHeight - 80;
+
+    // Create engine
+    const engine = Engine.create();
+    const world = engine.world;
+
+    // Create walls
+    const ground = Bodies.rectangle(viewWidth / 2, viewHeight, viewWidth, 30, { isStatic: true });
+    const ceiling = Bodies.rectangle(viewWidth / 2, -100, viewWidth, 200, { isStatic: true });
+    const leftWall = Bodies.rectangle(-100, viewHeight / 2, 200, viewHeight, { isStatic: true });
+    const rightWall = Bodies.rectangle(viewWidth + 100, viewHeight / 2, 200, viewHeight, { isStatic: true });
+
+    // Store body-element mappings
+    const bodyElementMap = new Map();
+
+    // Sample messages (in production, fetch from API)
+    const sampleMessages = [
+      "你好！",
+      "欢迎！",
+      "一起来玩",
+      "有趣！",
+      "继续加油",
+      "很棒",
+      "点赞",
+    ];
+
+    // Create initial bubbles
+    sampleMessages.forEach((msg, index) => {
+      setTimeout(() => {
+        const { body, text } = createBubbleMessage(discussContainer, msg);
+        if (body && text) {
+          const newBody = Bodies.rectangle(body.x, body.y, body.width, body.height, {
+            angle: body.angle,
+            chamfer: body.chamfer,
+            frictionAir: body.frictionAir,
+            restitution: body.restitution,
+            mass: body.mass,
+          });
+          Composite.add(world, newBody);
+          bodyElementMap.set(newBody.id, text);
+        }
+      }, index * 500);
+    });
+
+    // Add walls to world
+    Composite.add(world, [ground, ceiling, leftWall, rightWall]);
+
+    // Create mouse constraint
+    const mouse = Mouse.create(discussContainer);
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse,
+      constraint: {
+        stiffness: 0.2,
+      },
+    });
+    Composite.add(world, mouseConstraint);
+
+    // Custom render loop
+    function render() {
+      bodyElementMap.forEach((element, bodyId) => {
+        const body = Composite.allBodies(world).find(b => b.id === bodyId);
+        if (body && element) {
+          const { x, y } = body.position;
+          element.style.left = `${x - element.offsetWidth / 2}px`;
+          element.style.top = `${y - element.offsetHeight / 2}px`;
+          element.style.transform = `rotate(${body.angle}rad)`;
+        }
+      });
+      Engine.update(engine, 1000 / 60);
+      requestAnimationFrame(render);
+    }
+
+    // Start rendering
+    render();
+
+    // Input handling
+    let isShow = false;
+    let showMessage = false;
+    let showTips = '';
+
+    async function handleKeyDown(e) {
+      const isShiftPressed = e.shiftKey;
+      const isKeyQPressed = e.code === "KeyQ";
+
+      if (isKeyQPressed && isShiftPressed) {
+        isShow = !isShow;
+        input.style.display = isShow ? "block" : "none";
+      }
+
+      if (e.code === "Enter" && isShow && input) {
+        const message = input.value.trim();
+
+        if (getCookie("permission")) {
+          alert("今天不能再留言了哦,一天留言一次");
+          return;
+        }
+
+        // Set cookie for rate limiting
+        document.cookie = `permission=true; expires=${new Date(new Date().getTime() + 86400000).toUTCString()};`;
+
+        let newBody = null;
+        let newElement = null;
+        let newTips = "";
+
+        if (message.includes("https://") || message.includes("http://")) {
+          const result = await createImgMessage(discussContainer, message);
+          newBody = result.body;
+          newElement = result.img;
+          newTips = result.tips;
+        } else {
+          const result = createBubbleMessage(discussContainer, message);
+          newBody = result.body;
+          newElement = result.text;
+          newTips = result.tips;
+        }
+
+        showTips = newTips;
+
+        if (newBody && newElement) {
+          showMessage = true;
+          input.value = "";
+
+          const body = Bodies.rectangle(newBody.x, newBody.y, newBody.width, newBody.height, {
+            angle: newBody.angle,
+            chamfer: newBody.chamfer,
+            frictionAir: newBody.frictionAir,
+            restitution: newBody.restitution,
+            mass: newBody.mass,
+          });
+          Composite.add(world, body);
+          bodyElementMap.set(body.id, newElement);
+
+          setTimeout(() => {
+            showMessage = false;
+          }, 3000);
+        } else {
+          showMessage = true;
+          const dateUTC = new Date(0).toUTCString();
+          document.cookie = `permission=; expires=${dateUTC}; path=/;`;
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+  }, 100);
+</script>
+
+<style>
+  .bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+
+  .bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--before-color, #ea8777);
+  }
+</style>

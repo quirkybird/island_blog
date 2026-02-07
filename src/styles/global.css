@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'FiraCode';
+  src: url('/font/FiraCode-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'SourceHanSansCN';
+  src: url('/font/SourceHanSansSC.woff2') format('woff2');
+}
+
+@layer base {
+  :root {
+    --bg-dark-theme-color: #1a1a2e;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'SourceHanSansCN', system-ui, -apple-system, PingFang SC,
+      'Microsoft YaHei', Segoe UI, Roboto, Helvetica, noto sans sc,
+      hiragino sans gb, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+      Not Color Emoji;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Bubble styles for message stack */
+  .bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+
+  .bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--before-color, #ea8777);
+  }
+
+  /* Mkd 代码块样式（与原 blog Mkd.js 一致） */
+  .prose .hljs {
+    @apply dark:!bg-[#1e293b] !bg-[#F2F5F7] !text-[black] dark:!text-[#ffffff];
+  }
+
+  .prose p code {
+    @apply dark:bg-[#0284c7];
+    background-color: #bae6fd;
+    display: inline-block;
+    border-radius: 4px;
+    padding: 0.5px 2px;
+    margin: 0 2px;
+  }
+
+  .prose p code::before,
+  .prose p code::after {
+    content: '';
+    display: none;
+    height: 0;
+  }
+
+  .prose pre,
+  .prose pre code,
+  .prose .hljs {
+    font-family: 'FiraCode', system-ui, -apple-system, sans-serif !important;
+  }
+
+  .prose pre {
+    position: relative;
+    border-left: 5px solid #b9ccdb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  .dark .prose pre {
+    background-color: #1e293b;
+  }
+
+  .prose pre::after {
+    content: attr(data-after-content);
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    display: inline-block;
+    color: #3559e0;
+    font-size: clamp(12px, 0.4em, 16px);
+  }
+
+  .prose pre code {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .prose img {
+    border-radius: 0.5rem;
+  }
+
+  /* Animation classes */
+  @keyframes wave {
+    0% {
+      opacity: 1;
+      outline-offset: 0;
+    }
+    100% {
+      opacity: 0;
+      outline-offset: 300px;
+    }
+  }
+
+  @keyframes breathe {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      width: 400px;
+      height: 400px;
+    }
+  }
+
+  .animate-wave-slow {
+    animation: wave 6s linear infinite;
+  }
+
+  .animate-wave-fast {
+    animation: wave 3s linear infinite;
+  }
+
+  .animate-breathe {
+    animation: breathe 5s linear infinite;
+  }
+}
+
+@layer utilities {
+  /* Custom utilities */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}

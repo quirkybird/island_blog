@@ -1,0 +1,232 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navigation from '../../components/common/Navigation.astro';
+import Footer from '../../components/common/Footer.astro';
+
+// Sample friend links data (in production, fetch from API)
+const friendLinks = [
+  {
+    nickname: "Example Friend",
+    email: "friend@example.com",
+    theme_color: "#8B5CF6",
+    website_title: "Example Blog",
+    website_link: "https://example.com",
+    website_cover: "/images/logo.webp",
+    website_desr: "这是一个示例友链",
+  },
+  {
+    nickname: "Another Friend",
+    email: "another@example.com",
+    theme_color: "#EC4899",
+    website_title: "Another Blog",
+    website_link: "https://another.com",
+    website_cover: "/images/logo.webp",
+    website_desr: "另一个友链示例",
+  },
+];
+
+const getRandomNumber = (min: number, max: number, excludedRange?: [number, number]): number => {
+  let num;
+  if (!excludedRange) {
+    num = Math.floor(Math.random() * (max - min + 1) + min);
+  } else {
+    do {
+      num = Math.floor(Math.random() * (max - min + 1) + min);
+    } while (num >= excludedRange[0] && num <= excludedRange[1]);
+  }
+  return num;
+};
+
+const getRandomCoordinate = () => {
+  const screenW = window?.innerWidth || 1000;
+  const x = getRandomNumber(100, screenW * 0.7 - 100, [screenW * 0.7 / 2, screenW * 0.7 / 2 + 300]);
+  const y = getRandomNumber(100, 535, [160, 460]);
+  return {
+    left: x + 'px',
+    top: y + 'px'
+  };
+};
+
+const randomIndex = getRandomNumber(0, friendLinks.length - 1);
+const randomFriend = friendLinks[randomIndex];
+---
+
+<MainLayout title="友链 - quirkybird">
+  <Navigation />
+  <div class="h-[68.35px] lg:h-[80px]"></div>
+
+  <!-- Desktop Version -->
+  <main class="bg-black min-h-[calc(100vh-80px)] hidden lg:block">
+    <section class="w-full m-auto lg:w-[70vw] text-white">
+      <div id="random-web" class="random-web h-[500px] relative mb-10 pt-10">
+        <span class="text-lg">🌏 随机进入一个坐标</span>
+        <div class="flex justify-center items-center">
+          <p class="animate-typeing overflow-hidden whitespace-nowrap
+          text-center lg:text-2xl font-[600] border-r-2">来自时光隧道的神秘坐标即将出现🌌</p>
+        </div>
+        <div class="flex justify-center">
+          <div id="btn-grad" class="btn-grad absolute bottom-1/3 cursor-pointer">接收信号</div>
+        </div>
+        <div id="info-card" class="absolute bottom-0 -translate-x-1/2 left-1/2 transition-all duration-500">
+        </div>
+      </div>
+
+      <div>
+        <p class="text-lg">👋 遇见更多的人</p>
+        <ul class="relative">
+          {friendLinks.map((friendlink) => (
+            <a
+              href={friendlink.website_link}
+              class="star block w-[30px] h-[30px] rounded-[50%] bg-purple-300 absolute z-10
+                  drop-shadow-[0_0_25px_#c084fc] blur-none outline-dotted outline-offset-4 transition-all duration-500"
+              style={{
+                left: getRandomCoordinate().left,
+                top: getRandomCoordinate().top,
+                outlineColor: friendlink.theme_color,
+                filter: `drop-shadow(0 0 25px ${friendlink.theme_color})`
+              }}
+              data-link={JSON.stringify(friendlink)}
+            >
+              <img src={friendlink.website_cover} alt="cover" class="rounded-[50%] w-full h-full" />
+            </a>
+          ))}
+        </ul>
+        <div class="w-full h-[635px] m-auto rounded-[50%] relative flex justify-center items-center">
+          <div id="wave-slow-1" class="animate-wave-slow w-[250px] h-[250px] rounded-[50%] outline-5 outline absolute" style="outlineColor: {randomFriend?.theme_color}"></div>
+          <div id="wave-fast" class="animate-wave-fast w-[200px] h-[200px] rounded-[50%] outline-5 outline absolute" style="outlineColor: {randomFriend?.theme_color}"></div>
+          <div id="wave-slow-2" class="animate-wave-slow w-[100px] h-[100px] rounded-[50%] outline-5 outline absolute" style="outlineColor: {randomFriend?.theme_color}"></div>
+          <div id="star-center" class="w-[300px] h-[300px] rounded-[50%] bg-purple-400 absolute blur transition-all">
+            <a href={randomFriend?.website_link || '#'} class="relative">
+              <img class="w-full rounded-[50%]" src={randomFriend?.website_cover} alt="" />
+              <div class="w-3/4 text-xl text-center absolute top-[20%] left-1/2 -translate-x-1/2">{randomFriend?.website_title}</div>
+              <div class="absolute text-center top-1/2">{randomFriend?.website_desr}</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Version -->
+  <main class="min-h-[calc(100vh-80px)] lg:hidden px-5">
+    <p class="text-lg">👋 遇见更多的人</p>
+    {friendLinks.map((friendLink, index) => (
+      <div
+        class="my-10 rounded-md mx-5 transition-all"
+        style={{ '--color': friendLink.theme_color, boxShadow: `5px 5px 50px 15px ${friendLink.theme_color}` }}
+      >
+        <a
+          href={friendLink.website_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="h-40 rounded-md shadow-xl text-center flex flex-col justify-evenly items-center"
+          style={{ background: friendLink.theme_color }}
+        >
+          <img src={friendLink.website_cover} alt="网站图片" class="w-[46px] rounded-md" />
+          <div>
+            <span class="text-xl font-extralight">{friendLink.website_title}</span>
+            <p class="text-sm pt-3">{friendLink.website_desr}</p>
+          </div>
+        </a>
+      </div>
+    ))}
+  </main>
+
+  <Footer />
+</MainLayout>
+
+<script>
+  // UFO animation and star hover effects
+  let isUfoShow = false;
+  const btnGrad = document.getElementById('btn-grad');
+  const infoCard = document.getElementById('info-card');
+  const starCenter = document.getElementById('star-center');
+  const stars = document.querySelectorAll('.star');
+  const friendLinks: any[] = JSON.parse(document.currentScript?.getAttribute('data-friend-links') || '[]');
+
+  const randomFriend = friendLinks[Math.floor(Math.random() * friendLinks.length)];
+
+  if (btnGrad) {
+    btnGrad.addEventListener('click', () => {
+      if (!isUfoShow) {
+        isUfoShow = true;
+        btnGrad.style.display = 'none';
+
+        // Create UFO element
+        const ufo = document.createElement('div');
+        ufo.className = 'ufo animate-ufo -translate-y-[200px]';
+        ufo.innerHTML = `
+          <img src="/images/ufo.svg" alt="ufo" class="z-10 relative" />
+          <div class="w-[180px] h-[42px] bg-[#4ade80] m-auto -translate-y-[85px]"></div>
+          <div class="-translate-y-[120px] animate-ufo-light z-0 opacity-0"
+            style="width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 240px solid #86efac; boxShadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px; borderRadius: 50%;">
+          </div>
+        `;
+        document.querySelector('.random-web')?.appendChild(ufo);
+
+        // Show info card after UFO animation
+        setTimeout(() => {
+          if (infoCard && randomFriend) {
+            infoCard.innerHTML = `
+              <div style={{ '--color': randomFriend.theme_color }}
+                class="rounded-md mx-10 inline-block"
+                style="background: ${randomFriend.theme_color}">
+                <a href="${randomFriend.website_link}" target="_blank" rel="noopener noreferrer" class="w-[360px] h-[180px] rounded-md shadow-xl text-center flex flex-col justify-evenly items-center">
+                  <img src="${randomFriend.website_cover}" alt="网站图片" class="w-[46px] rounded-md" />
+                  <div>
+                    <span class="text-xl font-extralight">${randomFriend.website_title}</span>
+                    <p class="text-sm pt-3">${randomFriend.website_desr}</p>
+                  </div>
+                </a>
+              </div>
+            `;
+            infoCard.style.bottom = '50%';
+            infoCard.style.transform = 'translate(-50%, 80%)';
+          }
+        }, 7000);
+      }
+    });
+  }
+
+  // Star hover effects
+  stars.forEach((star, index) => {
+    star.addEventListener('mouseenter', () => {
+      star.style.top = '302.6px';
+      star.style.left = '50%';
+      star.style.opacity = '0';
+      star.style.zIndex = '-1';
+      if (starCenter) {
+        starCenter.style.filter = 'blur(0)';
+      }
+    });
+  });
+</script>
+
+<style>
+  .btn-grad {
+    background-image: linear-gradient(to right, #FF512F 0%, #DD2476 51%, #FF512F 100%);
+    padding: 15px 45px;
+    text-align: center;
+    text-transform: uppercase;
+    transition: 0.5s;
+    background-size: 200% auto;
+    color: white;
+    box-shadow: 0 0 20px #eee;
+    border-radius: 10px;
+    display: inline-block;
+  }
+
+  .btn-grad:hover {
+    background-position: right center;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .star {
+    transition: all 0.5s ease;
+  }
+
+  .star:hover {
+    transform: scale(1.2);
+  }
+</style>
