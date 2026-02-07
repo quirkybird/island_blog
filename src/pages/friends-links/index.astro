@@ -38,7 +38,7 @@ const getRandomNumber = (min: number, max: number, excludedRange?: [number, numb
 };
 
 const getRandomCoordinate = () => {
-  const screenW = window?.innerWidth || 1000;
+  const screenW = 1000;
   const x = getRandomNumber(100, screenW * 0.7 - 100, [screenW * 0.7 / 2, screenW * 0.7 / 2 + 300]);
   const y = getRandomNumber(100, 535, [160, 460]);
   return {
@@ -145,6 +145,36 @@ const randomFriend = friendLinks[randomIndex];
   const friendLinks: any[] = JSON.parse(document.currentScript?.getAttribute('data-friend-links') || '[]');
 
   const randomFriend = friendLinks[Math.floor(Math.random() * friendLinks.length)];
+
+  const getRandNum = (min: number, max: number, excludedRange?: [number, number]): number => {
+    let num: number;
+    if (!excludedRange) {
+      num = Math.floor(Math.random() * (max - min + 1) + min);
+    } else {
+      do {
+        num = Math.floor(Math.random() * (max - min + 1) + min);
+      } while (num >= excludedRange[0] && num <= excludedRange[1]);
+    }
+    return num;
+  };
+
+  const positionStars = () => {
+    const screenW = window.innerWidth;
+    const containerW = Math.floor(screenW * 0.7);
+    stars.forEach((star) => {
+      const x = getRandNum(100, containerW - 100, [containerW / 2, containerW / 2 + 300]);
+      const y = getRandNum(100, 535, [160, 460]);
+      (star as HTMLElement).style.left = `${x}px`;
+      (star as HTMLElement).style.top = `${y}px`;
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', positionStars);
+  } else {
+    positionStars();
+  }
+  window.addEventListener('resize', positionStars);
 
   if (btnGrad) {
     btnGrad.addEventListener('click', () => {
