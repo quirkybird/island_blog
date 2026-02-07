@@ -1,5 +1,5 @@
 import { defineConfig } from "astro/config";
-import tailwind from "@astrojs/tailwind";
+import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import react from "@astrojs/react";
 
@@ -8,14 +8,10 @@ export default defineConfig({
   srcDir: "./src",
   publicDir: "./public",
   outDir: "./dist",
-  integrations: [
-    tailwind({
-      applyBaseStyles: false,
-      configFile: "./tailwind.config.mjs",
-    }),
-    mdx(),
-    react(),
-  ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
+  integrations: [mdx(), react()],
   markdown: {
     headingIds: true,
     gfm: true,

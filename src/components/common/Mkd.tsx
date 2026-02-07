@@ -16,7 +16,12 @@ function getCodeText(node: React.ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
   if (Array.isArray(node)) return node.map(getCodeText).join("");
   const el = node as React.ReactElement<{ children?: React.ReactNode }>;
-  if (typeof node === "object" && node !== null && "props" in node && el.props?.children !== undefined) {
+  if (
+    typeof node === "object" &&
+    node !== null &&
+    "props" in node &&
+    el.props?.children !== undefined
+  ) {
     return getCodeText(el.props.children);
   }
   return String(node);
@@ -75,7 +80,9 @@ const Mkd = memo(function Mkd({ markdown }: Props) {
 
       const blocks = document.querySelectorAll(".prose pre code");
       blocks.forEach((block) => {
-        (block as HTMLElement).className = (block as HTMLElement).className.replace("hljs", "");
+        (block as HTMLElement).className = (
+          block as HTMLElement
+        ).className.replace("hljs", "");
         hljs.highlightElement(block as HTMLElement);
       });
 
@@ -93,7 +100,11 @@ const Mkd = memo(function Mkd({ markdown }: Props) {
   const memoizedMarkdown = useMemo(
     () => (
       <Markdown
-        remarkPlugins={[remarkGfm, remarkEmoji] as React.ComponentProps<typeof Markdown>["remarkPlugins"]}
+        remarkPlugins={
+          [remarkGfm, remarkEmoji] as React.ComponentProps<
+            typeof Markdown
+          >["remarkPlugins"]
+        }
         rehypePlugins={[rehypeRaw]}
         components={{ pre: preEle, code: codeBlock }}
       >

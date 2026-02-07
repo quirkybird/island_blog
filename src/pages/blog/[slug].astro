@@ -3,8 +3,8 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import Navigation from '../../components/common/Navigation.astro';
 import Footer from '../../components/common/Footer.astro';
 import GiscusComment from '../../components/common/GiscusComment.astro';
-import Mkd from '../../components/common/Mkd.tsx';
-import SummaryCard from '../../components/common/SummaryCard.tsx';
+import Mkd from '../../components/common/Mkd';
+import SummaryCard from '../../components/common/SummaryCard';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -107,22 +107,4 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
   <Footer />
 </MainLayout>
 
-<style>
-  /* Markdown content styling */
-  article :global(.prose) {
-    @apply max-w-none;
-  }
-  article :global(.prose pre) {
-    @apply bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto;
-  }
-  article :global(.prose code) {
-    @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded;
-  }
-  article :global(.prose pre code) {
-    @apply bg-transparent px-0 py-0;
-    font-family: 'FiraCode', system-ui, -apple-system, sans-serif;
-  }
-  article :global(.prose img) {
-    @apply rounded-lg;
-  }
-</style>
+

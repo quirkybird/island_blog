@@ -1,8 +1,6 @@
-import typography from '@tailwindcss/typography';
-
 export default {
-  content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-  darkMode: 'class',
+  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+  darkMode: "class",
   theme: {
     extend: {
       backgroundImage: {
@@ -16,7 +14,7 @@ export default {
                     blink 0.5s steps(44) infinite normal`,
         "wave-slow": "wave 6s linear infinite",
         "wave-fast": "wave 3s linear infinite",
-        "breathe": "breathe 5s linear infinite",
+        breathe: "breathe 5s linear infinite",
       },
       keyframes: {
         "hole-rotate": {
@@ -59,12 +57,12 @@ export default {
         },
         wave: {
           "0%": {
-            opacity: 1
+            opacity: 1,
           },
           "100%": {
-           "outline-offset": "300px",
-            opacity: 0
-          }
+            "outline-offset": "300px",
+            opacity: 0,
+          },
         },
         breathe: {
           "0%, 100%": {
@@ -73,10 +71,9 @@ export default {
           "50%": {
             width: "400px",
             height: "400px",
-          }
-        }
+          },
+        },
       },
     },
   },
-  plugins: [typography],
 };

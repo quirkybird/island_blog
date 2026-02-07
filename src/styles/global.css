@@ -1,15 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+/* 启用 Typography 插件（必须在这里加） */
+@plugin "@tailwindcss/typography";
 
 @font-face {
-  font-family: 'FiraCode';
-  src: url('/font/FiraCode-Regular.woff2') format('woff2');
+  font-family: "FiraCode";
+  src: url("/font/FiraCode-Regular.woff2") format("woff2");
 }
 
 @font-face {
-  font-family: 'SourceHanSansCN';
-  src: url('/font/SourceHanSansSC.woff2') format('woff2');
+  font-family: "SourceHanSansCN";
+  src: url("/font/SourceHanSansSC.woff2") format("woff2");
 }
 
 @layer base {
@@ -23,8 +23,8 @@
 
   html {
     scroll-behavior: smooth;
-    font-family: 'SourceHanSansCN', system-ui, -apple-system, PingFang SC,
-      'Microsoft YaHei', Segoe UI, Roboto, Helvetica, noto sans sc,
+    font-family: "SourceHanSansCN", system-ui, -apple-system, PingFang SC,
+      "Microsoft YaHei", Segoe UI, Roboto, Helvetica, noto sans sc,
       hiragino sans gb, sans-serif, Apple Color Emoji, Segoe UI Emoji,
       Not Color Emoji;
   }
@@ -45,7 +45,7 @@
   }
 
   .bubble::before {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -8px;
     left: 50%;
@@ -73,7 +73,7 @@
 
   .prose p code::before,
   .prose p code::after {
-    content: '';
+    content: "";
     display: none;
     height: 0;
   }
@@ -81,7 +81,7 @@
   .prose pre,
   .prose pre code,
   .prose .hljs {
-    font-family: 'FiraCode', system-ui, -apple-system, sans-serif !important;
+    font-family: "FiraCode", system-ui, -apple-system, sans-serif !important;
   }
 
   .prose pre {
@@ -128,7 +128,8 @@
   }
 
   @keyframes breathe {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {
