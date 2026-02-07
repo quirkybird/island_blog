@@ -25,8 +25,8 @@ const safeData = {
   date: post.data?.date || new Date(),
   categories: post.data?.categories || [],
   tags: post.data?.tags || [],
-  excerpt: post.data?.excerpt || '',
-  author: post.data?.author || '未知作者'
+  excerpt: post.data?.summary_text || '',
+  author: post.data?.author || '未知作者',
 };
 
 const formatDate = (date) => {
@@ -42,11 +42,11 @@ const isTechBlog = safeData.categories.includes('tech_blog');
 // 字数检测（按 Markdown 源文长度）
 const contentLength = (post.body ?? '').length;
 
-const site = import.meta.env.SITE?.replace(/\/$/, '') || 'http://localhost:3000';
+const site = import.meta.env.SITE?.replace(/\/$/, '');
 const canonicalUrl = `${site}/blog/${post.slug}`;
 const publishedTime = safeData.date instanceof Date ? safeData.date.toISOString() : new Date(safeData.date).toISOString();
 const description = safeData.excerpt || `${safeData.title} - quirkybird`;
-const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data.cover : `${site}${post.data.cover.startsWith('/') ? '' : '/'}${post.data.cover}`) : undefined;
+const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data.cover : `${site}${post.data.cover.startsWith('/') ? '' : '/images/cover/'}${post.data.cover}`) : undefined;
 ---
 
 <MainLayout

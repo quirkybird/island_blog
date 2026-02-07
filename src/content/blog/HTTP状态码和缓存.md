@@ -2,7 +2,7 @@
 title: "HTTP状态码和缓存"
 date: 2024-07-05
 tags: []
-cover: "17027970469991666020232666.gif"
+cover: ""
 categories: ["tech_blog"]
 author: "quirkybird"
 summary_text: "HTTP（超文本传输协议）是传输文字、图片等超文本数据的约定和规范。HTTP状态码分五类：1xx（提示）、2xx（成功）、3xx（重定向）、4xx（客户端错误）、5xx（服务器错误），并列举了常见状态码。文章还提及Host等常见HTTP字段。HTTP缓存技术分强制缓存（Cache-Control/Expires，前者优先）和协商缓存（Last-Modified/If-Modified-Since与ETag/If-None-Match，后者优先）两种。"

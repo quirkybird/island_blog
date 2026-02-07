@@ -2,7 +2,7 @@
 title: "JS中的Event Loop"
 date: 2024-04-04
 tags: []
-cover: "17027970469991666020232666.gif"
+cover: ""
 categories: ["tech_blog"]
 author: "quirkybird"
 summary_text: "JS是单线程非阻塞语言，代码执行分同步和异步模式。异步模式通过宏任务、微任务队列及事件轮询机制进行管理和调度。文章详细介绍了宏任务（如setTimeout、I/O）和微任务（如Promise.then、process.nextTick）的类型，并阐述了事件轮询的执行顺序：先完成同步任务，接着执行当前宏任务下创建的所有微任务，然后进入下一个宏任务。文末提供了多个代码示例，深入演示JS事件轮询的实际执行机制。"

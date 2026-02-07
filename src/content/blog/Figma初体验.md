@@ -2,7 +2,7 @@
 title: "Figma初体验"
 date: 2024-01-27
 tags: []
-cover: "17027970469991666020232666.gif"
+cover: ""
 categories: ["tech_blog"]
 author: "quirkybird"
 summary_text: "文章介绍了UI设计软件Figma，并提及Adobe于2022年9月15日以200亿美元收购Figma。作者首次体验Figma网页版，尝试切图Apple Store页面，并分享了安装字体插件、头像生成插件等前置工作。文章详细讲解了Figma的基础操作，如调整组件、添加辅助线、查看距离、快速复制、插件使用及蒙版功能。作者认为Figma上手体验良好，对熟悉PS的用户更友好，并计划深入学习。"

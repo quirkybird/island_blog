@@ -2,7 +2,7 @@
 title: "TCP三次握手和四次挥手简析"
 date: 2023-12-05
 tags: []
-cover: "17027970469991666020232666.gif"
+cover: ""
 categories: ["tech_blog"]
 author: "quirkybird"
 summary_text: "TCP三次握手用于建立连接：客户端发起请求，服务器确认并回复，客户端收到确认后发送最终确认，双方完成连接。
