@@ -1,0 +1,22 @@
+{
+  "extends": "astro/tsconfigs/strict", // 或 strictest
+  "compilerOptions": {
+    // JSX 设置（根据你用的框架选择一个）
+    "jsx": "react-jsx", // 最常用（React）
+    "jsxImportSource": "react", // 如果用 React
+
+    // 如果用 Preact：
+    // "jsxImportSource": "preact",
+
+    // 如果用 Solid：
+    // "jsxImportSource": "solid-js",
+
+    "moduleResolution": "bundler", // 现代推荐，帮解析 paths
+    "noEmit": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "isolatedModules": true
+  },
+  "include": [".astro/types.d.ts", "**/*.ts", "**/*.tsx", "**/*.astro"],
+  "exclude": ["dist", "node_modules"]
+}

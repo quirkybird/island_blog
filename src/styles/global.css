@@ -1,6 +1,6 @@
-@import "tailwindcss";
-/* 启用 Typography 插件（必须在这里加） */
-@plugin "@tailwindcss/typography";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @font-face {
   font-family: "FiraCode";
