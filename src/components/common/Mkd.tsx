@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, memo } from "react";
+import React, { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -9,6 +9,8 @@ import "highlight.js/styles/atom-one-light.css";
 interface Props {
   markdown: string;
 }
+
+hljs.configure({ ignoreUnescapedHTML: true });
 
 /** 从 react-markdown 的 children 中安全取出纯文本 */
 function getCodeText(node: React.ReactNode): string {
@@ -28,91 +30,45 @@ function getCodeText(node: React.ReactNode): string {
 }
 
 const Mkd = memo(function Mkd({ markdown }: Props) {
-  const langList = useRef<string[]>([]);
-  langList.current = []; /* 每次渲染重新收集语言标签 */
+  function PreEle({ children }: { children?: React.ReactNode }) {
+    let label = "";
+    if (React.isValidElement(children)) {
+      const className = String(children.props?.className ?? "");
+      const match = className.match(/language-([^\s]+)/);
+      label = (match?.[1] ?? "").toUpperCase();
+    }
+    return <pre data-after-content={label}>{children}</pre>;
+  }
 
-  const preEle = useMemo(
-    () =>
-      function PreEle({ children }: { children?: React.ReactNode }) {
-        return <pre data-after-content=" ">{children}</pre>;
-      },
-    []
-  );
+  function CodeBlock({
+    className,
+    children,
+    inline,
+  }: {
+    className?: string;
+    children?: React.ReactNode;
+    inline?: boolean;
+  }) {
+    const codeString = getCodeText(children).replace(/\n$/, "");
+    if (inline) {
+      return <code className={className}>{codeString}</code>;
+    }
 
-  const codeBlock = useMemo(
-    () =>
-      function CodeBlock({
-        className,
-        children,
-        inline,
-      }: {
-        className?: string;
-        children?: React.ReactNode;
-        inline?: boolean;
-      }) {
-        const codeString = getCodeText(children);
-        if (className) {
-          const lang = className.split("-")[1]?.toUpperCase() ?? "";
-          langList.current.push(lang);
-        }
-        return <code className="!bg-transparent">{codeString}</code>;
-      },
-    []
-  );
+    const match = String(className ?? "").match(/language-([^\s]+)/);
+    const lang = match?.[1] ?? "";
+    const highlighted =
+      lang && hljs.getLanguage(lang)
+        ? hljs.highlight(codeString, { language: lang }).value
+        : hljs.highlightAuto(codeString).value;
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 });
-
-    const initHighlight = () => {
-      hljs.configure({
-        ignoreUnescapedHTML: true,
-        languages: [
-          "javascript",
-          "java",
-          "python",
-          "cpp",
-          "css",
-          "xml",
-          "typescript",
-          "bash",
-        ],
-      });
-
-      const blocks = document.querySelectorAll(".prose pre code");
-      blocks.forEach((block) => {
-        (block as HTMLElement).className = (
-          block as HTMLElement
-        ).className.replace("hljs", "");
-        hljs.highlightElement(block as HTMLElement);
-      });
-
-      const list = langList.current.slice();
-      langList.current = [];
-      const pres = document.querySelectorAll(".prose pre");
-      pres.forEach((pre, index) => {
-        (pre as HTMLElement).dataset.afterContent = list[index] ?? "";
-      });
-    };
-
-    requestAnimationFrame(initHighlight);
-  }, [markdown]);
-
-  const memoizedMarkdown = useMemo(
-    () => (
-      <Markdown
-        remarkPlugins={
-          [remarkGfm, remarkEmoji] as React.ComponentProps<
-            typeof Markdown
-          >["remarkPlugins"]
-        }
-        rehypePlugins={[rehypeRaw]}
-        components={{ pre: preEle, code: codeBlock }}
-      >
-        {markdown}
-      </Markdown>
-    ),
-    [markdown, preEle, codeBlock]
-  );
+    const mergedClassName = ["hljs", className].filter(Boolean).join(" ");
+    return (
+      <code
+        className={mergedClassName}
+        dangerouslySetInnerHTML={{ __html: highlighted }}
+      />
+    );
+  }
 
   return (
     <section
@@ -121,7 +77,17 @@ const Mkd = memo(function Mkd({ markdown }: Props) {
     prose-a:text-[#3bb0f0] dark:prose-invert dark:text-gray-300 dark:prose-pre:bg-[#1e293b] prose-pre:bg-[#F2F5F7]
     prose-pre:!p-0 prose-code:!p-4"
     >
-      {memoizedMarkdown}
+      <Markdown
+        remarkPlugins={
+          [remarkGfm, remarkEmoji] as React.ComponentProps<
+            typeof Markdown
+          >["remarkPlugins"]
+        }
+        rehypePlugins={[rehypeRaw]}
+        components={{ pre: PreEle, code: CodeBlock }}
+      >
+        {markdown}
+      </Markdown>
     </section>
   );
 });

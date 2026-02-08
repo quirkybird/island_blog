@@ -85,16 +85,16 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
       )} -->
 
       <section class="px-[14px]">
-        <SummaryCard client:only="react" text={post.data?.summary_text ?? ''} />
+        <SummaryCard text={post.data?.summary_text ?? ''} />
       </section>
 
       {isTechBlog ? (
         // 技术文章：直接渲染 Markdown
-        <Mkd client:only="react" markdown={post.body ?? ''} />
+        <Mkd markdown={post.body ?? ''} />
       ) : (
         // 非技术文章：卡片式包裹，增加圆角与阴影
         <div class="rounded-md shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] my-5" style={{ fontSize: '16px' }}>
-          <Mkd client:only="react" markdown={post.body ?? ''} />
+          <Mkd markdown={post.body ?? ''} />
         </div>
       )}
 
@@ -106,5 +106,4 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
 
   <Footer />
 </MainLayout>
-
 
