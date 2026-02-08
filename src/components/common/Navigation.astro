@@ -12,10 +12,6 @@ const navLinks = [
   //   title: "友链",
   //   path: "/friends-links",
   // },
-  // {
-  //   title: "留言堆",
-  //   path: "/message-stack",
-  // },
 ];
 
 const userInfo = { NAME: 'quirkybird', avatar: '/images/logo.webp' };
@@ -65,17 +61,28 @@ const userInfo = { NAME: 'quirkybird', avatar: '/images/logo.webp' };
 
 <script>
   // Mobile menu toggle
-  const menuToggle = document.getElementById('menu-toggle');
-  const mobileMenu = document.getElementById('mobile-menu');
-  let menuActive = false;
+  const setupMobileMenu = () => {
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
 
-  menuToggle?.addEventListener('click', () => {
-    menuActive = !menuActive;
-    if (mobileMenu) {
+    if (!menuToggle || !mobileMenu) {
+      return;
+    }
+
+    if (menuToggle.dataset.menuBound === 'true') {
+      return;
+    }
+
+    menuToggle.dataset.menuBound = 'true';
+
+    menuToggle.addEventListener('click', () => {
       mobileMenu.classList.toggle('-left-80');
       mobileMenu.classList.toggle('left-0');
-    }
-  });
+    });
+  };
+
+  setupMobileMenu();
+  document.addEventListener('astro:page-load', setupMobileMenu);
 
   // Scroll hide/show logic
   let lastScrollTop = 0;
