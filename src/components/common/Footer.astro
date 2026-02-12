@@ -34,33 +34,24 @@ import PoweredByVercel from "powered-by-vercel";
 
 <script>
   // Theme toggle functionality
-  const themeToggle = document.getElementById('theme-toggle');
-  const buttons = themeToggle.querySelectorAll('[data-theme]');
+  const setupThemeToggle = () => {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (!themeToggle) return;
 
-  function setActiveButton(theme: string) {
-    buttons.forEach(btn => {
-      btn.style.color = 'inherit';
-    });
-    if (theme === 'light') buttons[0].style.color = '#60A5FA';
-    else if (theme === 'dark') buttons[1].style.color = '#60A5FA';
-    else buttons[2].style.color = '#60A5FA';
-  }
+    const buttons = themeToggle.querySelectorAll('[data-theme]');
+    if (buttons.length < 3) return;
 
-  // Set initial state
-  const currentTheme = localStorage.getItem('theme') || 'system';
-  setActiveButton(currentTheme);
+    const setActiveButton = (theme: string) => {
+      buttons.forEach((btn) => {
+        (btn as HTMLElement).style.color = 'inherit';
+      });
 
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const theme = btn.dataset.theme;
-      if (theme === 'system') {
-        localStorage.removeItem('theme');
-      } else {
-        localStorage.setItem('theme', theme);
-      }
-      setActiveButton(theme);
+      if (theme === 'light') (buttons[0] as HTMLElement).style.color = '#60A5FA';
+      else if (theme === 'dark') (buttons[1] as HTMLElement).style.color = '#60A5FA';
+      else (buttons[2] as HTMLElement).style.color = '#60A5FA';
+    };
 
-      // Apply theme immediately
+    const applyTheme = (theme: string) => {
       if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
         document.documentElement.style.filter = 'brightness(85%)';
@@ -68,6 +59,32 @@ import PoweredByVercel from "powered-by-vercel";
         document.documentElement.classList.remove('dark');
         document.documentElement.style.filter = '';
       }
+    };
+
+    // Sync active state on every navigation.
+    const currentTheme = localStorage.getItem('theme') || 'system';
+    setActiveButton(currentTheme);
+    applyTheme(currentTheme);
+
+    buttons.forEach((btn) => {
+      const button = btn as HTMLElement;
+      if (button.dataset.themeBound === 'true') return;
+      button.dataset.themeBound = 'true';
+
+      button.addEventListener('click', () => {
+        const theme = button.dataset.theme || 'system';
+        if (theme === 'system') {
+          localStorage.removeItem('theme');
+        } else {
+          localStorage.setItem('theme', theme);
+        }
+
+        setActiveButton(theme);
+        applyTheme(theme);
+      });
     });
-  });
+  };
+
+  setupThemeToggle();
+  document.addEventListener('astro:page-load', setupThemeToggle);
 </script>

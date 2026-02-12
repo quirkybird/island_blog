@@ -15,6 +15,15 @@
 @layer base {
   :root {
     --bg-dark-theme-color: #1a1a2e;
+    --message-accent: #2d7cee;
+    --message-accent-strong: #2563eb;
+    --message-ink: #0f172a;
+    --message-muted: #64748b;
+    --message-surface: #ffffff;
+    --message-surface-strong: #f8fafc;
+    --message-border: #e2e8f0;
+    --message-shadow: rgba(15, 23, 42, 0.1);
+    --message-glow: rgba(45, 124, 238, 0.35);
   }
 
   * {
@@ -103,7 +112,14 @@
 
   /* Mkd 代码块样式（与原 blog Mkd.js 一致） */
   .prose .hljs {
-    @apply dark:!bg-[#1e293b] !bg-[#F2F5F7] !text-[black] dark:!text-[#ffffff];
+    background-color: #eef4ff !important;
+    color: #1e293b !important;
+    line-height: 1.6;
+  }
+
+  .dark .prose .hljs {
+    background-color: #0f172a !important;
+    color: #dbeafe !important;
   }
 
   .prose p code {
@@ -130,29 +146,94 @@
 
   .prose pre {
     position: relative;
-    border-left: 5px solid #b9ccdb;
-    border-radius: 0.5rem;
-    padding: 1rem;
+    border-left: 4px solid #93c5fd;
+    border-radius: 0.625rem;
+    margin: 1rem 0 !important;
+    padding: 0.75rem 0.875rem 0.875rem;
     overflow-x: auto;
   }
 
   .dark .prose pre {
-    background-color: #1e293b;
+    border-left-color: #3b82f6;
+    background-color: #0f172a;
   }
 
   .prose pre::after {
     content: attr(data-after-content);
     position: absolute;
     right: 10px;
-    top: 5px;
+    top: 6px;
     display: inline-block;
-    color: #3559e0;
+    color: #2563eb;
     font-size: clamp(12px, 0.4em, 16px);
   }
 
   .prose pre code {
     background-color: transparent;
     padding: 0;
+  }
+
+  .prose .hljs-comment,
+  .prose .hljs-quote {
+    color: #64748b;
+    font-style: italic;
+  }
+
+  .prose .hljs-keyword,
+  .prose .hljs-selector-tag,
+  .prose .hljs-literal,
+  .prose .hljs-section,
+  .prose .hljs-link {
+    color: #1d4ed8;
+  }
+
+  .prose .hljs-string,
+  .prose .hljs-title,
+  .prose .hljs-name,
+  .prose .hljs-type,
+  .prose .hljs-attribute,
+  .prose .hljs-symbol,
+  .prose .hljs-bullet,
+  .prose .hljs-addition {
+    color: #0f766e;
+  }
+
+  .prose .hljs-number,
+  .prose .hljs-variable,
+  .prose .hljs-template-variable,
+  .prose .hljs-meta .hljs-string {
+    color: #be123c;
+  }
+
+  .dark .prose .hljs-comment,
+  .dark .prose .hljs-quote {
+    color: #94a3b8;
+  }
+
+  .dark .prose .hljs-keyword,
+  .dark .prose .hljs-selector-tag,
+  .dark .prose .hljs-literal,
+  .dark .prose .hljs-section,
+  .dark .prose .hljs-link {
+    color: #93c5fd;
+  }
+
+  .dark .prose .hljs-string,
+  .dark .prose .hljs-title,
+  .dark .prose .hljs-name,
+  .dark .prose .hljs-type,
+  .dark .prose .hljs-attribute,
+  .dark .prose .hljs-symbol,
+  .dark .prose .hljs-bullet,
+  .dark .prose .hljs-addition {
+    color: #5eead4;
+  }
+
+  .dark .prose .hljs-number,
+  .dark .prose .hljs-variable,
+  .dark .prose .hljs-template-variable,
+  .dark .prose .hljs-meta .hljs-string {
+    color: #fda4af;
   }
 
   .prose img {
