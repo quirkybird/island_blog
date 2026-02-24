@@ -1,5 +1,5 @@
 ---
-title: "最近的日子"
+title: "AltPatch构想"
 date: 2026-02-25
 tags: []
 cover: "博客封面_鼠标点击.png"
