@@ -79,17 +79,19 @@
     color: #dbeafe !important;
   }
 
-  .prose p code {
+  .prose :not(pre) > code {
     @apply dark:bg-[#0284c7];
     background-color: #bae6fd;
-    display: inline-block;
+    display: inline;
     border-radius: 4px;
     padding: 0.5px 2px;
     margin: 0 2px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  .prose p code::before,
-  .prose p code::after {
+  .prose :not(pre) > code::before,
+  .prose :not(pre) > code::after {
     content: "";
     display: none;
     height: 0;
