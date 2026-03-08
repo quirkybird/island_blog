@@ -199,6 +199,19 @@
     border-radius: 0.5rem;
   }
 
+  .prose[data-mkd-content] img:not([data-no-zoom]) {
+    cursor: zoom-in;
+  }
+
+  .medium-zoom-overlay {
+    z-index: 70;
+  }
+
+  .medium-zoom-image--opened {
+    cursor: zoom-out;
+    z-index: 71;
+  }
+
   /* Animation classes */
   @keyframes wave {
     0% {

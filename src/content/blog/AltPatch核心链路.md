@@ -2,13 +2,11 @@
 title: "AltPatch 项目核心链路"
 date: 2026-03-08
 tags: ["工程化", "Vite", "AI", "开发工具"]
-cover: "https://imgchr.com/i/peikIun"
+cover: "https://s41.ax1x.com/2026/03/08/peikIun.jpg"
 categories: ["tech_blog"]
 author: "quirkybird"
 summary_text: "这篇文章从工程实现角度拆解 AltPatch 的核心链路：Vite/Webpack 插件如何注入定位能力，运行时面板如何通过 Alt+Click 建立页面元素与源码位置的映射，API 层如何编排 read/modify/write 流程，以及 server-core 如何通过 FsGuard、结构化 LLM 输出与语法修复机制保障改动可控落地，最终形成从需求到代码生效的快速闭环。"
 ---
-
-# AltPatch 项目核心链路解析：从 Alt+Click 到代码落地的一次闭环
 
 AltPatch 的价值不在于“又一个调试面板”，而在于它把前端改动流程压缩成了一条可执行链路：**定位元素 -> 读取上下文 -> 生成改动 -> 写回文件 -> 立即验证**。这条链路打通后，开发者从“我想改这里”到“代码已经生效”的路径被明显缩短。
 
@@ -42,10 +40,12 @@ Webpack 插件走的是同一思路：补丁 `babel-loader` 插入 locator 能�
 
 ### 1) Quick Text
 
+![quick-text](https://altpatch.yamorz.top/text.gif)
 Quick 模式是本地文本替换逻辑，目标是极低延迟。它基于当前定位附近做替换，再通过 `/api/diff` 生成统一 diff 预览。这条链路不依赖 LLM，适合“文案改字、简单文本替换”类需求。
 
 ### 2) AI Assist
 
+![ai-assist](https://altpatch.yamorz.top/ai.gif)
 AI 模式走 `/api/modify-stream`，通过 SSE 持续回传 delta 文本，面板可以实时显示模型输出。它的策略不是一上来改全文件，而是优先 `local-preferred`：以定位点为中心裁一段上下文窗口，先在局部求解。
 
 如果后端判断“上下文不够”（返回 `SCOPE_ERROR`），前端会自动回退到 `full-file` 再试一次。这个机制兼顾了两点：

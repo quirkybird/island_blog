@@ -107,3 +107,25 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
   <Footer />
 </MainLayout>
 
+<script>
+  import mediumZoom from "medium-zoom";
+
+  const ZOOM_SELECTOR = "article [data-mkd-content] img:not([data-no-zoom])";
+  let zoomInstance = null;
+
+  function initImageZoom() {
+    const allImages = document.querySelectorAll(ZOOM_SELECTOR);
+    const images = Array.from(allImages).filter((img) => !img.closest("pre, code"));
+    if (!images.length) return;
+
+    if (zoomInstance) zoomInstance.detach();
+    zoomInstance = mediumZoom({
+      background: "rgba(15, 23, 42, 0.86)",
+      margin: 20,
+    });
+    zoomInstance.attach(images);
+  }
+
+  document.addEventListener("astro:page-load", initImageZoom);
+  initImageZoom();
+</script>
