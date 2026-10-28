@@ -1,0 +1,137 @@
+---
+export interface TocHeading {
+  depth: number;
+  slug: string;
+  text: string;
+  children?: TocHeading[];
+}
+
+interface Props {
+  headings: TocHeading[];
+}
+
+const { headings } = Astro.props;
+const hasHeadings = headings.length > 0;
+---
+
+{
+  hasHeadings && (
+    <nav class="toc" aria-label="文章目录">
+      <p class="toc-label">目录</p>
+      <ul class="toc-list">
+        {headings.map((heading) => (
+          <li class:list={["toc-item", heading.children?.length ? "toc-item--parent" : ""]}>
+            <div class="toc-row">
+              <a href={`#${heading.slug}`} data-toc-link class="toc-link">
+                {heading.text}
+              </a>
+              {heading.children?.length ? (
+                <button
+                  type="button"
+                  class="toc-toggle"
+                  data-toc-toggle
+                  aria-expanded="false"
+                  aria-label={`展开「${heading.text}」的子标题`}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                    <path
+                      d="M3 2.5L6.2 5L3 7.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              ) : null}
+            </div>
+
+            {heading.children?.length ? (
+              <div class="toc-sub-wrap">
+                <ul class="toc-sub">
+                  {heading.children.map((child) => (
+                    <li class="toc-item toc-item--sub">
+                      <a href={`#${child.slug}`} data-toc-link class="toc-link">
+                        {child.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  function setupToc() {
+    const nav = document.querySelector<HTMLElement>(".toc");
+    // 直接调用与 astro:page-load 可能各触发一次，避免重复绑定
+    if (!nav || nav.dataset.tocReady === "true") return;
+    nav.dataset.tocReady = "true";
+
+    const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"));
+    if (!links.length) return;
+
+    const items = links
+      .map((link) => {
+        const el = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        return el ? { link, el } : null;
+      })
+      .filter((item): item is { link: HTMLAnchorElement; el: HTMLElement } => Boolean(item));
+
+    if (!items.length) return;
+
+    // 展开 / 收起子级
+    nav.addEventListener("click", (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-toc-toggle]");
+      if (!button) return;
+      const parent = button.closest<HTMLElement>(".toc-item--parent");
+      if (!parent) return;
+      const open = parent.classList.toggle("is-open");
+      button.setAttribute("aria-expanded", String(open));
+    });
+
+    let active: HTMLAnchorElement | null = null;
+
+    const update = () => {
+      const threshold = window.scrollY + 140;
+      let current = items[0];
+
+      for (const item of items) {
+        if (item.el.getBoundingClientRect().top + window.scrollY <= threshold) {
+          current = item;
+        }
+      }
+
+      if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) {
+        current = items[items.length - 1];
+      }
+
+      if (current.link !== active) {
+        if (active) active.classList.remove("is-active");
+        active = current.link;
+        active.classList.add("is-active");
+
+        // 当前项在收起的子级里时，自动展开
+        const parent = active.closest<HTMLElement>(".toc-item--parent");
+        if (parent && !parent.classList.contains("is-open")) {
+          parent.classList.add("is-open");
+          parent.querySelector("[data-toc-toggle]")?.setAttribute("aria-expanded", "true");
+        }
+      }
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+  }
+
+  document.addEventListener("astro:page-load", setupToc);
+  // 没有启用 ClientRouter 时，astro:page-load 不会在首屏触发
+  setupToc();
+</script>

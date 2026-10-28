@@ -5,6 +5,7 @@ import Footer from '../../components/common/Footer.astro';
 import GiscusComment from '../../components/common/GiscusComment.astro';
 import Mkd from '../../components/common/Mkd';
 import SummaryCard from '../../components/common/SummaryCard';
+import Toc from '../../components/common/Toc.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -39,14 +40,49 @@ const formatDate = (date) => {
 };
 
 const isTechBlog = safeData.categories.includes('tech_blog');
-// 字数检测（按 Markdown 源文长度）
-const contentLength = (post.body ?? '').length;
+const body = post.body ?? '';
+const contentLength = body.length;
+// 中文约 400 字/分钟，取整后至少 1 分钟
+const readingMinutes = Math.max(1, Math.round(contentLength / 400));
+
+// .mdx 文章使用 Astro 的 MDX 渲染器，才能使用博客组件；
+// .md 文章继续走 Mkd，保持原有的代码块与高亮逻辑。
+const isMdx = post.id.endsWith('.mdx');
+const rendered = await post.render();
+const MdxContent = isMdx ? rendered.Content : null;
+
+// 目录只取二级、三级标题；没有小标题的文章不渲染目录
+const flatHeadings = (rendered.headings ?? []).filter(
+  (heading) => heading.depth === 2 || heading.depth === 3
+);
+// 以文中出现的最浅层级作为顶层（一级标题），更深的层级折叠到父级下面
+const topDepth = flatHeadings.length
+  ? Math.min(...flatHeadings.map((heading) => heading.depth))
+  : 2;
+const tocTree = [];
+for (const heading of flatHeadings) {
+  const node = { depth: heading.depth, slug: heading.slug, text: heading.text, children: [] };
+  if (heading.depth <= topDepth || tocTree.length === 0) {
+    tocTree.push(node);
+  } else {
+    tocTree[tocTree.length - 1].children.push(node);
+  }
+}
+const hasToc = tocTree.length > 0;
 
 const site = import.meta.env.SITE?.replace(/\/$/, '');
 const canonicalUrl = `${site}/blog/${post.slug}`;
 const publishedTime = safeData.date instanceof Date ? safeData.date.toISOString() : new Date(safeData.date).toISOString();
 const description = safeData.excerpt || `${safeData.title} - quirkybird`;
 const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data.cover : `${site}${post.data.cover.startsWith('/') ? '' : '/images/cover/'}${post.data.cover}`) : undefined;
+
+// 文章页封面：站内相对路径统一落到 /images/cover/
+const cover = post.data?.cover;
+const coverSrc = !cover
+  ? undefined
+  : cover.startsWith('http')
+    ? cover
+    : `${cover.startsWith('/') ? '' : '/images/cover/'}${cover}`;
 ---
 
 <MainLayout
@@ -56,49 +92,77 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
   canonicalUrl={canonicalUrl}
   ogType="article"
   publishedTime={publishedTime}
+  bodyClass="reading-page"
+  imageWidth={coverSrc?.endsWith('.svg') ? 1200 : undefined}
+  imageHeight={coverSrc?.endsWith('.svg') ? 675 : undefined}
 >
   <Navigation />
+
+  <div class="fixed inset-x-0 top-0 z-[60] h-[2px] bg-transparent" aria-hidden="true">
+    <div
+      data-reading-progress
+      class="h-full w-full origin-left scale-x-0 bg-[var(--accent)] transition-transform duration-150 ease-out"
+    ></div>
+  </div>
+
   <div class="h-[68.35px] lg:h-[80px]"></div>
 
-  <main class="min-h-[calc(100vh-76px)]">
-    <article class="max-w-[900px] m-auto relative">
-      <section class={`${isTechBlog ? 'text-center' : 'text-center md:text-start'} mt-20 px-5`}>
-        <h1 class="text-2xl lg:text-3xl font-[800] mb-3">{safeData.title}</h1>
-        <span>{formatDate(safeData.date)}</span>
-        <span> | 字数检测：{contentLength}</span>
-      </section>
+  <main class="min-h-[calc(100vh-80px)]">
+    {hasToc && <Toc headings={tocTree} />}
 
-      <!-- {post.data?.cover && (
-        <section class="px-5">
-          <div class="relative w-full rounded-md overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
-            <img
-              class="absolute inset-0 w-full h-full object-cover"
-              src={post.data.cover.startsWith('http')
-                ? post.data.cover
-                : '/' + (post.data.cover.startsWith('/') ? post.data.cover.slice(1) : (post.data.cover.includes('/') ? post.data.cover : `images/cover/${post.data.cover}`))
-              }
-              alt={post.data.title}
-              loading="lazy"
-            />
-          </div>
-        </section>
-      )} -->
-
-      <section class="px-[14px]">
-        <SummaryCard text={post.data?.summary_text ?? ''} />
-      </section>
-
-      {isTechBlog ? (
-        // 技术文章：直接渲染 Markdown
-        <Mkd markdown={post.body ?? ''} />
-      ) : (
-        // 非技术文章：卡片式包裹，增加圆角与阴影
-        <div class="rounded-md shadow-[rgba(100,100,111,0.2)_0px_7px_29px_0px] my-5" style={{ fontSize: '16px' }}>
-          <Mkd markdown={post.body ?? ''} />
+    <article class="reading-shell">
+      {coverSrc && (
+        <div class="pt-14 lg:pt-20">
+          <img
+            src={coverSrc}
+            alt={`${safeData.title} 封面`}
+            width="1200"
+            height="675"
+            class="block w-full rounded-xl border border-[var(--rule)] bg-[var(--paper-raised)]"
+          />
         </div>
       )}
 
-      <span class="px-5">更新时间：{formatDate(safeData.date)}</span>
+      <header class={coverSrc ? "pt-9 lg:pt-12 pb-8" : "pt-16 lg:pt-24 pb-8"}>
+        {safeData.tags.length > 0 && (
+          <p class="mb-5 text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-[var(--faint)]">
+            {safeData.tags.map((tag, i) => (
+              <span>
+                {i > 0 && <span class="mx-2 text-[var(--rule-strong)]">/</span>}
+                {tag}
+              </span>
+            ))}
+          </p>
+        )}
+
+        <h1 class="text-[1.9rem] lg:text-[2.6rem] font-bold leading-[1.22] tracking-[-0.022em] text-[var(--ink-strong)]">
+          {safeData.title}
+        </h1>
+
+        <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8125rem] tracking-[0.02em] text-[var(--muted)]">
+          <time datetime={publishedTime}>{formatDate(safeData.date)}</time>
+          <span aria-hidden="true" class="text-[var(--rule-strong)]">·</span>
+          <span>{contentLength.toLocaleString()} 字</span>
+          <span aria-hidden="true" class="text-[var(--rule-strong)]">·</span>
+          <span>约 {readingMinutes} 分钟</span>
+        </div>
+      </header>
+
+      <div class="h-px w-full bg-[var(--rule)]"></div>
+
+      {safeData.excerpt && (
+        <section class="pt-9">
+          <SummaryCard text={safeData.excerpt} />
+        </section>
+      )}
+
+      <section class="reading-prose pt-10 pb-4" data-mkd-content>
+        {isMdx ? <MdxContent /> : <Mkd markdown={body} />}
+      </section>
+
+      <footer class="mt-4 border-t border-[var(--rule)] pt-6 text-[0.8125rem] tracking-[0.02em] text-[var(--faint)]">
+        <span>更新于 {formatDate(safeData.date)}</span>
+      </footer>
 
       <GiscusComment />
     </article>
@@ -110,7 +174,7 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
 <script>
   import mediumZoom from "medium-zoom";
 
-  const ZOOM_SELECTOR = "article [data-mkd-content] img:not([data-no-zoom])";
+  const ZOOM_SELECTOR = "article .reading-prose img:not([data-no-zoom])";
   let zoomInstance = null;
 
   function initImageZoom() {
@@ -120,12 +184,35 @@ const image = post.data?.cover ? (post.data.cover.startsWith('http') ? post.data
 
     if (zoomInstance) zoomInstance.detach();
     zoomInstance = mediumZoom({
-      background: "rgba(15, 23, 42, 0.86)",
+      background: "rgba(20, 19, 15, 0.88)",
       margin: 20,
     });
     zoomInstance.attach(images);
   }
 
-  document.addEventListener("astro:page-load", initImageZoom);
+  // 顶部阅读进度条
+  function initReadingProgress() {
+    const bar = document.querySelector<HTMLElement>("[data-reading-progress]");
+    if (!bar) return;
+
+    const update = () => {
+      const article = document.querySelector("article");
+      if (!article) return;
+      const start = article.getBoundingClientRect().top + window.scrollY - 120;
+      const total = article.scrollHeight - window.innerHeight + 120;
+      const progress = total > 0 ? (window.scrollY - start) / total : 0;
+      bar.style.transform = `scaleX(${Math.min(1, Math.max(0, progress))})`;
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    initImageZoom();
+    initReadingProgress();
+  });
   initImageZoom();
+  initReadingProgress();
 </script>

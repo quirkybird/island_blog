@@ -1,0 +1,365 @@
+---
+title: "不止 Claude Code：Tutti 如何接入本地 Agent 与工具"
+date: 2026-10-29
+tags: ["Tutti", "Agent", "ACP", "架构"]
+categories: ["tech_blog"]
+author: "quirkybird"
+cover: "tutti-local-tools.svg"
+summary_text:
+  "从 Claude Code 的 SDK sidecar，到 Codex app-server、ACP 和签名 Agent Extension，再到 daemon 托管的 browser/computer/connector，拆解 Tutti 把不同本地工具接进同一套会话模型的四层方法。"
+---
+
+import {
+  StatGrid,
+  DataTable,
+  Callout,
+  FlowDiagram,
+} from "../../components/blog";
+
+如果把 [Tutti](https://tutti.sh) 只当成 Claude Code 的桌面壳，会漏掉它最有意思的部分：Claude Code 只是它支持的一个 provider。
+
+它真正想解决的问题是：本地 Agent 的形态太多了。[Claude Code](https://code.claude.com/docs/en/overview) 有自己的 SDK，[Codex](https://github.com/openai/codex) 有自己的 app-server，[Cursor](https://cursor.com)、[OpenCode](https://opencode.ai)、[OpenClaw](https://openclaw.org) 各自说 ACP，Hermes、Kimi Code 这类工具甚至不在 Tutti 仓库里。浏览器、桌面控制、第三方连接器又是另一类东西——它们不是 Agent，而是 Agent 要调用的能力。
+
+这篇文章不写使用教程，而是一次源码向的拆解：Tutti 用什么分层把这些东西接进来，哪些差异被 adapter 吃掉了，哪些差异必须留给 descriptor 和 runtimeprep，以及如果今天要再接一个本地工具，应该从哪一层下手。
+
+<StatGrid
+  items={[
+    { value: "3", label: "运行时协议", note: "Claude SDK / Codex app-server / ACP" },
+    { value: "7", label: "内置 provider", note: "providerregistry 中的 migrated descriptors" },
+    { value: "8 / 2", label: "扩展源 / 默认启用", note: "Hermes 与 Kimi Code 默认启用" },
+    { value: "1", label: "聚合 connector MCP", note: "本地与远程 Connector 共用" },
+  ]}
+  caption="统计口径：当前仓库的 providerregistry 与 config/tutti.defaults.json；扩展源会随版本调整"
+/>
+
+## 一、先看全景：daemon 是接线板
+
+Tutti 的进程层次可以画得很长，但边界其实很清楚：
+
+<FlowDiagram
+  nodes={[
+    {
+      title: "Electron Desktop",
+      detail:
+        "只负责窗口、交互和 tuttid 进程生命周期；通过 loopback HTTP + Bearer 访问 daemon。",
+      tag: "UI",
+      tone: "slate",
+    },
+    {
+      title: "tuttid",
+      detail:
+        "Agent Host 拥有 Session / Turn 生命周期；Runtime Controller 拥有 provider 进程、事件归一化和工具服务。",
+      tag: "daemon",
+      tone: "sky",
+    },
+    {
+      title: "Provider Adapter",
+      detail:
+        "把统一生命周期翻译成 Claude SDK、Codex app-server 或 ACP 的具体调用。",
+      tag: "适配层",
+      tone: "emerald",
+    },
+    {
+      title: "Provider Process",
+      detail:
+        "claude-sdk-sidecar、codex app-server、cursor-agent acp、opencode acp……每个会话一个受控进程。",
+      tag: "本地 CLI",
+      tone: "violet",
+    },
+    {
+      title: "Local Capability",
+      detail:
+        "`tutti` CLI、connector MCP、chrome-devtools-mcp、cua-driver MCP；进程生命周期由 daemon 持有。",
+      tag: "工具",
+      tone: "amber",
+    },
+  ]}
+  caption="一条会话的调用链：上层只看见统一生命周期，下层才是具体协议与工具"
+/>
+
+这张图里最重要的不是进程数量，而是两条边界。
+
+第一条在 Desktop 和 tuttid 之间。Electron 不直接启动 Agent，也不解析 provider 事件；它只调用 daemon 的 HTTP API。这样 UI 不需要知道 Cursor 和 Codex 的区别，更不需要为每个 provider 写一套会话状态机。
+
+第二条在 adapter 和 provider 之间。所有 provider 共享同一套 Session、Turn、Interaction、Goal 语义；协议差异被压到 adapter 里。上层代码可以判断 capability，但不能按 provider 名字分支——这条规则在仓库的架构文档里被反复强调。
+
+<Callout tone="note" title="Provider 不是模型">
+在 Tutti 的语境里，一个 provider 更像一套“本地运行时”：有自己的 CLI、认证方式、会话恢复机制、权限模型和事件格式。模型只是这套运行时里的一个设置项。
+</Callout>
+
+## 二、三种运行时，三种接法
+
+`providerregistry` 里目前只有三种 `RuntimeKind`。所有内置 provider 都落在这三类里：
+
+<DataTable
+  columns={["Provider", "Runtime / 协议", "启动命令", "状态"]}
+  rows={[
+    ["Claude Code", "claude_sdk · NDJSON", "Node sidecar → Claude Agent SDK", "内置"],
+    ["Codex", "codex_app_server · JSON-RPC", "codex app-server", "内置"],
+    ["Tutti Agent", "codex_app_server · JSON-RPC", "tutti-agent app-server", "内置"],
+    ["Cursor", "standard_acp · ACP", "cursor-agent acp / agent acp", "内置"],
+    ["OpenCode", "standard_acp · ACP", "opencode acp", "内置"],
+    ["OpenClaw", "standard_acp · ACP", "openclaw acp -v", "暂禁用"],
+    ["Nexight", "standard_acp · ACP", "nexight-acp", "暂禁用"],
+  ]}
+  caption="“暂禁用”表示 provider 仍登记在 registry，但 target 被禁用，不是当前可启动路径"
+  nowrapColumns={[0, 1, 3]}
+/>
+
+### Claude Code：把差异关进 sidecar
+
+Claude Code 是这套系统里最特殊的一条链路。
+
+daemon 不直接启动 `claude`，而是启动 `@tutti-os/claude-sdk-sidecar`；sidecar 再用 [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) 启动 Claude Code CLI。daemon 和 sidecar 之间走 NDJSON：`start`、`exec`、`cancel`、`apply_settings`、`close`。sidecar 内部维护一个 `Map<agentSessionId, SessionRuntime>`，按 Tutti 的会话身份路由请求。
+
+这么做的好处是把 Node 版本、SDK 版本、SDK 的流式消息格式都关在一个进程里。Go daemon 只需要理解一层稳定的请求/事件协议，不需要把 Claude 的 SDK 类型系统搬进 Go。代价是多一个进程、多一层序列化，以及 sidecar 自己要处理 Turn 生命周期、Query 代际和交互协调。
+
+### Codex 与 Tutti Agent：复用 app-server
+
+Codex 走的是自己的 app-server：`codex app-server`，JSON-RPC。`thread/start`、`turn/start`、`turn/steer` 这些方法直接对应 Codex 的会话模型。
+
+有意思的是 Tutti Agent。它的命令是 `tutti-agent app-server`，但 descriptor 的 `RuntimeKind` 同样是 `codex_app_server`，复用同一个 `CodexAppServerAdapter`。原因很简单：协议一样，身份和认证不一样。adapter 由 descriptor 参数化，而不是按 provider 名字写 if/else。
+
+这也是 Tutti 复用策略的一个缩影：先看协议能不能复用，再看身份需不需要分开。
+
+### ACP：一份通用引擎，多个 provider
+
+ACP（[Agent Client Protocol](https://agentclientprotocol.com)）是 JSON-RPC 2.0 over stdio。一次典型的会话大致是这样：
+
+```text
+initialize
+  -> agentCapabilities.mcpCapabilities.http ?
+
+session/new { cwd, mcpServers }
+session/prompt { sessionId, prompt }
+  <- session/update ...
+  <- session/request_permission ...
+```
+
+恢复会话时走 `session/load` 或 provider 支持的 resume 方法。Cursor、OpenCode、OpenClaw、Nexight 都走这条链路。
+
+仓库里有一句很关键的注释：所有 ACP provider 都是共享引擎上的薄声明，一个 provider 一个文件；只有协议行为无法用 descriptor 表达时，才加命名 strategy。
+
+这意味着接一个新 ACP Agent 的正常成本，不是写一套 runtime，而是填一份 descriptor：identity、command、auth、permission modes、capabilities、slash commands、target、events。
+
+<Callout tone="insight" title="先问协议，再问 provider">
+Tutti 的扩展策略不是给每个工具写一套 UI，而是先问：它能不能说一种我们已经在说的协议？能复用协议，就只补身份和策略；不能，才值得新开一个 runtime kind。
+</Callout>
+
+## 三、ACP 的边界：协议统一，语义不统一
+
+ACP 统一的是会话协议，不是产品语义。真正落到每个 provider，仍然有一堆“只有它才有的毛病”。
+
+<DataTable
+  columns={["Provider", "通用 ACP 之外还要处理什么"]}
+  rows={[
+    [
+      "Cursor",
+      "二进制名可能是 cursor-agent 或 agent；需要 --plugin-dir；ACP 工具目录里没有 AskUserQuestion，需要局部 MCP bridge；权限档映射到 ask / agent / plan",
+    ],
+    [
+      "OpenCode",
+      "session 级 OPENCODE_CONFIG_DIR；模型写进 OPENCODE_CONFIG_CONTENT；build / plan 是独立工作流模式；Spark 模型的 reasoning effort 需要额外校验",
+    ],
+    [
+      "OpenClaw",
+      "sessionKey 让 gateway 把会话当成 GUI 会话；需要禁用 Node compile cache；没有 permission mode 映射",
+    ],
+    [
+      "Nexight",
+      "从 codex-acp 派生；权限模式和图片输入需要单独声明",
+    ],
+  ]}
+  caption="这些差异都留在 provider 专属 strategy 或 descriptor 里，不进入共享 UI"
+/>
+
+所以 ACP 不是“接上就能用”。认证、工具目录、权限语义、进程环境、恢复方式，仍然要 descriptor 和 runtimeprep 补齐。
+
+`providerregistry` 的 descriptor 之所以字段那么多，就是因为它要同时回答这些问题：
+
+- 这个 provider 叫什么、图标是什么、别名是什么；
+- 用什么命令启动，命令怎么解析；
+- 怎么判断已登录，认证文件在哪里；
+- 支持哪些权限档，Tutti 的 `read-only` / `auto` / `full-access` 怎么映射到运行时；
+- 支持哪些 capability，模型目录从哪里来；
+- slash command 怎么处理，哪些命令要立即提交；
+- 会话事件怎么归一化，Turn 生命周期怎么投影；
+- 桌面上是否托管、安装、更新、探测用量。
+
+一句话：adapter 负责“怎么说话”，descriptor 负责“它是谁、能做什么、怎么管理”。
+
+## 四、Agent Extension：不写 Go，也能接一个新 Agent
+
+如果每个第三方 Agent 都要进 Tutti 仓库写 Go，接入速度会被发布节奏拖死。Agent Extension 是另一条路：不往仓库里加可执行代码，而是发布一个签名数据包。
+
+当前仓库的 `config/tutti.defaults.json` 里配置了 8 个扩展源，默认启用的是 [Hermes](https://github.com/NousResearch/hermes-agent) 和 [Kimi Code](https://github.com/MoonshotAI/kimi-code)。每个源固定一个 agent key、一个精确版本、一个 HTTPS `versions.json`、一个 Ed25519 公钥。daemon 只接受客户端固定版本、签名有效、SHA-256 对得上、manifest 身份和包内容都通过校验的发布物。
+
+扩展包是 data-only 的：manifest、discovery / tool / capability / composer / authentication / account-usage profile、locale 资源、静态资源。它可以在声明里指定一个精确的 npm / pnpm / uv 运行时安装，或者固定官方可执行文件，但不携带可执行代码，也不加载 JavaScript、React、Go 插件或原生模块。
+
+启动时，Runtime Controller 对未知 provider 询问 `AgentRuntimeResolver`。resolver 验证固定安装引用，评估 discovery profile，然后创建通用的 standard ACP adapter。整个扩展接入不需要在 Tutti 里写 provider-specific 的 runtime 代码。
+
+扩展还可以声明一个受约束的 `runtimePrep` overlay：
+
+- 写标准 instructions 文件；
+- 创建 session 级 home；
+- 从用户 home 复制声明过的 opaque 文件；
+- 用一个校验过的环境变量暴露这个 home；
+- 把 Tutti 管理的 skills 物化到声明过的 skill root；
+- 把这些 root 合并进受支持的 YAML 字符串列表，比如 `skills.external_dirs`。
+
+Hermes 就是一个典型例子：它通过声明 `HERMES_HOME` 获得 session 级隔离，把 `bin` 声明为共享可变目录，让校验过的 Tirith helper 跨 session 复用；再把 Tutti 的 skill root 和用户原生 skill 目录合并进 `skills.external_dirs`。这些行为都在签名 profile 里，Tutti 核心不需要知道 `acp:hermes` 这个名字。
+
+<Callout tone="warning" title="扩展不是“随便跑”">
+Agent Extension 的安全模型是“签名 + 固定版本 + 数据-only + 不加载代码”。远端发布新版本不会自动改变已经发布的 Tutti 客户端；要采用新版本，需要 Tutti 自己发版更新 pin。这是用新鲜度换供应链确定性。
+</Callout>
+
+## 五、工具不一定是 Agent
+
+Claude Code、Codex、Cursor 是 Agent；浏览器、桌面控制、第三方连接器不是。Tutti 对这两类东西的处理方式完全不同。
+
+<DataTable
+  columns={["场景", "暴露方式", "进程归属", "典型入口"]}
+  rows={[
+    [
+      "浏览器",
+      "tutti browser CLI",
+      "每个 workspace 一个 chrome-devtools-mcp",
+      "browser open / snapshot / click / fill / eval / screenshot",
+    ],
+    [
+      "桌面",
+      "tutti computer CLI",
+      "每个 workspace 一个 cua-driver MCP",
+      "computer screenshot / click / type / press-key / scroll",
+    ],
+    [
+      "连接器",
+      "聚合 connector HTTP MCP",
+      "daemon 的 connector MCP",
+      "tools/list、tools/call",
+    ],
+    [
+      "特有能力",
+      "adapter 内的局部 MCP",
+      "adapter",
+      "Cursor 的 tutti-interaction AskUserQuestion",
+    ],
+  ]}
+  caption="Agent 负责推理，工具进程由 daemon 持有；两边通过 CLI 或 MCP 连接"
+  nowrapColumns={[0, 1]}
+/>
+
+### 浏览器与桌面：CLI 是最大公约数
+
+Tutti 没有给每个 provider 注入一套浏览器 MCP。它选择让 daemon 持有工具进程，agent 通过统一的 `tutti browser` / `tutti computer` CLI 调用。
+
+浏览器这边，每个 workspace 一个 [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) 子进程，默认空闲 5 分钟回收；桌面这边，每个 workspace 一个 [cua-driver](https://github.com/trycua/cua) MCP 子进程，同样有空闲回收。浏览器还区分桌面 BrowserNode 和 headless managed Chrome；computer 在启动前会做 cua-driver readiness 和权限检查。
+
+为什么是 CLI？因为几乎所有本地 Agent 都能执行 shell 命令。skill 只需要告诉它 `tutti browser snapshot` 返回什么、`computer screenshot` 怎么传窗口参数，不需要每个 provider 自己实现一套 MCP 注入。工具进程的生命周期、认证、空闲回收、错误恢复都留在 daemon 里。
+
+### Connector：一个聚合 MCP，按会话发 token
+
+Connector 是另一种形态：它不是 Tutti 自己实现的工具，而是第三方服务的适配层。
+
+daemon 启动一个 loopback-only 的聚合 MCP server，agent 只看见一个名为 `connector` 的 server；背后可以是本地 Connector，也可以是远程 MCP（[Model Context Protocol](https://modelcontextprotocol.io)）。每个 workspace / session 拿到 scoped binding 和短时 token，工具列表由当前激活的 Connector route 共同组成。
+
+注入方式按 provider 走：
+
+- Claude Code：sidecar 的 `mcpServers`；
+- Codex：`[mcp_servers.connector]`；
+- ACP：`session/new` 的 `mcpServers`，但只有 provider 在 `initialize` 里声明 `agentCapabilities.mcpCapabilities.http` 才注入，否则降级为空。
+
+这也是为什么“同一个 connector 能在不同 Agent 里用”：不是每个 Agent 都认识 Connector，而是 daemon 把 Connector 投影成了它们都认识的 MCP。
+
+### Cursor 的 AskUserQuestion：最小 bridge
+
+Cursor 的 ACP 工具目录里没有 `AskUserQuestion`，但它的 CLI 交互界面有。Tutti 没有 patch Cursor 二进制，而是起了一个 loopback MCP server `tutti-interaction`，把这个工具桥接回 Tutti 的 Interaction 流程。
+
+这是一个很好的边界案例：provider 缺一个能力，不一定要改整个 runtime，也不一定要放弃这个 provider。一个局部的、带 token 的 MCP bridge 就够了。
+
+<Callout tone="insight" title="能走 CLI 的走 CLI，需要结构化调用的走 MCP">
+CLI 适合“执行一个动作、返回文本或文件”的工具；MCP 适合“需要工具目录、参数 schema、权限和结构化结果”的工具。两者都由 daemon 持有生命周期，而不是交给 provider 自己管。
+</Callout>
+
+## 六、启动前，runtimeprep 做了什么
+
+spawn 只是最后一步。真正决定“这个工具能不能用”的，是 spawn 前的准备。
+
+Tutti 给每个 session 一个 runtime root，runtimeprep 在这里准备系统提示词、skills、插件、provider home、环境变量和 MCP binding。不同 provider 的房间长得不一样：
+
+- **Claude Code**：系统提示词文件、`tutti-cli` 插件、personal skill 的 additional directory、`CLAUDE_CODE_EXECUTABLE` fallback。
+- **Cursor**：session 级 plugin，通过 `--plugin-dir` 传给 `cursor-agent acp`；因为 ACP 不会把 plugin skills / rules 投影进模型上下文，adapter 会把准备好的 context 追加到第一条 prompt。
+- **OpenCode**：session 级 `OPENCODE_CONFIG_DIR`、`AGENTS.md`、Tutti skill bundle、RTK 的 `tool.execute.before` rewrite plugin。
+- **Codex / Tutti Agent**：run-scoped `CODEX_HOME` / `TUTTI_AGENT_HOME`；Tutti 管理的 skills 通过 `skills/extraRoots/set` 在 initialize 之后、`thread/start` 之前注入。
+- **所有 provider**：从 daemon 的 command catalog 渲染 command guide，把 `tutti` CLI 的命令快照写进 skill；browser / computer 开启时再注入对应 skill。
+
+PATH 也是 runtimeprep / process transport 的一部分。`runtimecmd.Resolver` 会剥掉父进程泄漏的 Claude Code nesting guard 环境变量，合并 `N_PREFIX`、`PNPM_HOME`、`VOLTA_HOME`、`ASDF_DATA_DIR`、`MISE_DATA_DIR`、`FNM_DIR` 等工具链目录，再补 Homebrew、`/usr/local/bin`、`/usr/bin`、`/bin` 这类 fallback，最后注入系统代理。这样用户在终端里能跑的命令，Agent 会话里大概率也能跑。
+
+<Callout tone="warning" title="大部分“接不上”不是协议问题">
+工具接不上，常见原因不是 ACP 不兼容，而是 PATH 找不到二进制、provider home 里没有认证文件、权限没给够、skill root 没物化、或者 MCP server 没声明 HTTP 能力。runtimeprep 的复杂度，就是接入成本的大头。
+</Callout>
+
+## 七、如果要再接一个工具，我会按这个顺序判断
+
+1. **它是 Agent 还是能力？** Agent 有自己的会话、模型和工具循环；能力只是一组可调用动作。两者不要混在同一层。
+2. **Agent 且支持 ACP？** 先看能不能做成 Agent Extension：签名 manifest + `runtimePrep` overlay，通常不需要写 Go。
+3. **Agent 但不说 ACP？** 新增 `RuntimeKind` 和 adapter，像 Codex app-server 那样。descriptor 声明身份、命令、认证、能力；adapter 只处理协议差异；本地进程 transport 和事件归一化尽量复用。
+4. **能力型工具？** 优先做 `tutti` CLI command + skill。命令由 daemon 执行，skill 负责教 agent 怎么用；不要让每个 provider 自己接一遍。
+5. **需要结构化工具调用？** 做成 Connector / MCP。先 `connector available` 发现，再走 MCP 或 CLI lane；认证、路由、授权留在 daemon。
+6. **只缺一个 provider 特有能力？** 做最小 MCP bridge，像 Cursor 的 AskUserQuestion。只补缺口，不要把特例扩散成通用层。
+7. **最后验收生命周期**：start / resume / cancel / close、权限模式切换、事件归一化、错误可读、Windows / macOS 路径、没有泄漏的子进程。
+
+如果把这套判断压缩成一张表，大概是这样：
+
+<DataTable
+  columns={["情况", "首选路径", "主要改动"]}
+  rows={[
+    ["新 Agent，支持 ACP", "Agent Extension", "签名 manifest + runtimePrep，无 Go 代码"],
+    ["新 Agent，非 ACP", "新 RuntimeKind + adapter", "descriptor + adapter + transport 复用"],
+    ["现有 CLI 能力", "tutti CLI + skill", "command provider + skill template"],
+    ["第三方服务", "Connector", "manifest + MCP / CLI route + 授权"],
+    ["特有能力缺口", "局部 MCP bridge", "adapter 内最小实现，带 scoped token"],
+  ]}
+  caption="顺序原则：能声明就不写代码，能复用协议就不新开 runtime，能留在 daemon 就不下放给 provider"
+/>
+
+## 八、代价与边界
+
+这套方法不是免费的。
+
+**协议会漂移。** Cursor、OpenCode、OpenClaw 的 ACP 实现都在变，字段、模式、工具目录、错误码都可能不同。Tutti 的应对是 descriptor + live discovery + 版本门槛 + 大量协议测试和 replay cassette，而不是在 UI 里写兼容分支。
+
+**认证各管各的。** 每个 CLI 有自己的登录方式和认证文件位置；Tutti 只做状态探测和文件监听，不把 provider credential 转发来转发去。模型访问计划是另一条链路，Codex / Tutti Agent 走 loopback Model Gateway，Claude 走自己的环境契约，OpenCode 走配置注入。
+
+**权限不是沙箱。** Tutti 把权限分成 `read-only` / `auto` / `full-access`，ACP 还有 `session/request_permission` 和 provider 自己的模式映射。但这些是产品层的审批语义，不是操作系统级隔离。仓库文档写得很直白：本地 daemon 的凭据对同用户 CLI 可见，环境变量、命令投影、provider 审批规则都不足以防住一个恶意的同用户进程。真正的安全边界要靠进程和文件系统隔离。
+
+**扩展有供应链取舍。** 签名、固定版本、data-only、不加载代码，换来的是可验证性；代价是新版本 adoption 慢，需要 Tutti 自己发版更新 pin。这是刻意设计的，不是疏忽。
+
+**Claude Code 仍然是最深的一条链路。** 它有 SDK sidecar、插件、系统提示词、personal skills、专用 binary 管理；其他 provider 更多是共享 ACP 引擎或 app-server adapter。这个“深度差”不是缺陷，而是协议成熟度和产品保真度的自然结果：越复杂的运行时，越需要专属适配。
+
+<Callout tone="warning" title="统一接口，不等于统一实现">
+Tutti 的统一发生在 Session、Turn、Event、Capability 这些产品语义上；实现层仍然是多协议、多进程、多认证的。把差异藏起来，和把差异消灭掉，是两件事。
+</Callout>
+
+## 写在最后
+
+Tutti 的接入方法可以压缩成一句话：**把 Agent 当协议，把工具当能力，把差异留在 adapter，把生命周期留在 daemon。**
+
+Claude Code 走 SDK sidecar，Codex 和 Tutti Agent 走 app-server，Cursor / OpenCode / OpenClaw / Nexight 走 ACP，Hermes / Kimi Code 这样的外部 Agent 走签名 Extension；浏览器、桌面、Connector 则被投影成 CLI 或 MCP，由 daemon 统一持有。
+
+这套分层最值得借鉴的地方，不是某一个 adapter 写得多巧，而是它始终在问同一个问题：这个差异应该由谁吸收？
+
+能让协议吸收的，交给协议；能让 descriptor 吸收的，交给 descriptor；能让 runtimeprep 吸收的，交给 runtimeprep；只有实在藏不住的，才让它进入 adapter。想清楚这个顺序，接一个新本地工具就不再是“再写一套集成”，而只是给现有骨架补一个插头。
+
+## 工具与资料
+
+文中提到的项目，按接入方式分组：
+
+- **Tutti 本身**：[官网](https://tutti.sh) · [GitHub 仓库](https://github.com/tutti-os/tutti)
+- **Agent 运行时**：[Claude Code](https://code.claude.com/docs/en/overview) · [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) · [Codex](https://github.com/openai/codex)
+- **ACP Agent**：[Cursor](https://cursor.com) · [OpenCode](https://opencode.ai) · [OpenClaw](https://openclaw.org)
+- **Agent Extension**：[Hermes Agent](https://github.com/NousResearch/hermes-agent) · [Kimi Code](https://github.com/MoonshotAI/kimi-code)
+- **本地能力**：[chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) · [cua-driver](https://github.com/trycua/cua)
+- **协议**：[Agent Client Protocol](https://agentclientprotocol.com) · [Model Context Protocol](https://modelcontextprotocol.io)
+- **仓库文档**：[runtime preparation](https://github.com/tutti-os/tutti/blob/main/docs/architecture/agent-runtime-preparation.md) · [agent extensions](https://github.com/tutti-os/tutti/blob/main/docs/architecture/agent-extensions.md) · [connector](https://github.com/tutti-os/tutti/blob/main/docs/architecture/connector.md)
+

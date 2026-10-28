@@ -5,16 +5,39 @@
 @font-face {
   font-family: "FiraCode";
   src: url("/font/FiraCode-Regular.woff2") format("woff2");
+  font-display: swap;
 }
 
 @font-face {
   font-family: "SourceHanSansCN";
   src: url("/font/SourceHanSansSC.woff2") format("woff2");
+  font-display: swap;
 }
 
 @layer base {
   :root {
     --bg-dark-theme-color: #1a1a2e;
+
+    /* 阅读页：暖纸编辑感 */
+    --paper: #faf9f5;
+    --paper-raised: #ffffff;
+    --ink: #1c1b19;
+    --ink-strong: #121110;
+    --ink-soft: #3f3d38;
+    --muted: #6e6a63;
+    --faint: #918c82;
+    --rule: #e7e3da;
+    --rule-soft: #efece5;
+    --rule-strong: #d6d1c5;
+    --accent: #2f6feb;
+    --accent-soft: #eaf0fd;
+    --code-bg: #f2f1ec;
+    --code-block-bg: #f5f4ef;
+    --code-border: #e4e1d7;
+    --selection: #f5e6c8;
+    --mark-bg: #f6e7b8;
+
+    /* 站内通用 */
     --message-accent: #2d7cee;
     --message-accent-strong: #2563eb;
     --message-ink: #0f172a;
@@ -24,6 +47,26 @@
     --message-border: #e2e8f0;
     --message-shadow: rgba(15, 23, 42, 0.1);
     --message-glow: rgba(45, 124, 238, 0.35);
+  }
+
+  .dark {
+    --paper: #14130f;
+    --paper-raised: #1a1916;
+    --ink: #e8e5dd;
+    --ink-strong: #f6f3eb;
+    --ink-soft: #d3cfc5;
+    --muted: #a39e93;
+    --faint: #7e796f;
+    --rule: #2b2924;
+    --rule-soft: #221f1a;
+    --rule-strong: #3a3730;
+    --accent: #82a9ff;
+    --accent-soft: #1a2438;
+    --code-bg: #1e1c17;
+    --code-block-bg: #1a1916;
+    --code-border: #2d2a24;
+    --selection: #3b3320;
+    --mark-bg: #4a3c1d;
   }
 
   * {
@@ -36,13 +79,25 @@
       "Microsoft YaHei", Segoe UI, Roboto, Helvetica, noto sans sc,
       hiragino sans gb, sans-serif, Apple Color Emoji, Segoe UI Emoji,
       Not Color Emoji;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
+  ::selection {
+    background: var(--selection);
+    color: var(--ink-strong);
+  }
+
+  /* 阅读页整体底色与正文色 */
+  .reading-page {
+    background-color: var(--paper);
+    color: var(--ink);
+  }
 }
 
 @layer components {
@@ -67,140 +122,605 @@
     border-top: 10px solid var(--before-color, #ea8777);
   }
 
-  /* Mkd 代码块样式（与原 blog Mkd.js 一致） */
-  .prose .hljs {
-    background-color: #eef4ff !important;
-    color: #1e293b !important;
-    line-height: 1.6;
+  /* =========================================================
+     文章阅读排版
+     基准：正文 17px / 行高 1.85 / 段距 1.75em / 栏宽 ~688px
+     ========================================================= */
+
+  .reading-shell {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
   }
 
-  .dark .prose .hljs {
-    background-color: #0f172a !important;
-    color: #dbeafe !important;
-  }
-
-  .prose :not(pre) > code {
-    @apply dark:bg-[#0284c7];
-    background-color: #bae6fd;
-    display: inline;
-    border-radius: 4px;
-    padding: 0.5px 2px;
-    margin: 0 2px;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  .prose :not(pre) > code::before,
-  .prose :not(pre) > code::after {
-    content: "";
+  /* 目录：固定在视口左侧，不参与文章居中 */
+  .toc {
     display: none;
-    height: 0;
   }
 
-  .prose pre,
-  .prose pre code,
-  .prose .hljs {
-    font-family: "FiraCode", system-ui, -apple-system, sans-serif !important;
+  @media (min-width: 1280px) {
+    .toc {
+      display: block;
+      position: fixed;
+      left: 2rem;
+      top: 7rem;
+      width: 13.5rem;
+      max-height: calc(100vh - 9rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      /* 隐藏滚动条但保留滚动能力 */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      z-index: 40;
+    }
+
+    .toc::-webkit-scrollbar {
+      display: none;
+    }
   }
 
-  .prose pre {
-    position: relative;
-    border-left: 4px solid #93c5fd;
-    border-radius: 0.625rem;
-    margin: 1rem 0 !important;
-    padding: 0.75rem 0.875rem 0.875rem;
-    overflow-x: auto;
+  .toc-label {
+    margin: 0 0 0.9rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    color: var(--faint);
+    text-transform: uppercase;
   }
 
-  .dark .prose pre {
-    border-left-color: #3b82f6;
-    background-color: #0f172a;
-  }
-
-  .prose pre::after {
-    content: attr(data-after-content);
-    position: absolute;
-    right: 10px;
-    top: 6px;
-    display: inline-block;
-    color: #2563eb;
-    font-size: clamp(12px, 0.4em, 16px);
-  }
-
-  .prose pre code {
-    background-color: transparent;
+  .toc-list {
+    list-style: none;
+    margin: 0;
     padding: 0;
+    border-left: 1px solid var(--rule);
   }
 
-  .prose .hljs-comment,
-  .prose .hljs-quote {
-    color: #64748b;
+  .toc-item {
+    margin: 0;
+  }
+
+  .toc-row {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .toc-link {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-left: -1px;
+    padding: 0.32rem 0 0.32rem 0.9rem;
+    border-left: 2px solid transparent;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .toc-link:hover {
+    color: var(--ink);
+  }
+
+  .toc-link.is-active {
+    color: var(--ink-strong);
+    border-left-color: var(--accent);
+  }
+
+  /* 展开 / 收起子级标题 */
+  .toc-toggle {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin-top: 0.18rem;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--faint);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease,
+      transform 0.18s ease;
+  }
+
+  .toc-toggle:hover {
+    color: var(--ink);
+    background: var(--rule-soft);
+  }
+
+  .toc-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .toc-item--parent.is-open > .toc-row .toc-toggle {
+    transform: rotate(90deg);
+  }
+
+  .toc-sub-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.2s ease;
+  }
+
+  .toc-sub-wrap > .toc-sub {
+    overflow: hidden;
+  }
+
+  .toc-item--parent.is-open > .toc-sub-wrap {
+    grid-template-rows: 1fr;
+  }
+
+  .toc-sub {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--rule-soft);
+  }
+
+  .toc-item--sub .toc-link {
+    padding-left: 1.6rem;
+    font-size: 0.78rem;
+    color: var(--faint);
+  }
+
+  .toc-item--sub .toc-link.is-active {
+    color: var(--ink);
+  }
+
+  .reading-prose {
+    --measure: 46rem;
+    font-size: 1.0625rem; /* 17px */
+    line-height: 1.85;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word;
+  }
+
+  .reading-prose > :first-child {
+    margin-top: 0;
+  }
+
+  .reading-prose > :last-child {
+    margin-bottom: 0;
+  }
+
+  .reading-prose p {
+    margin: 0 0 1.75em;
+    text-wrap: pretty;
+  }
+
+  .reading-prose strong,
+  .reading-prose b {
+    font-weight: 650;
+    color: var(--ink-strong);
+  }
+
+  .reading-prose em {
     font-style: italic;
   }
 
-  .prose .hljs-keyword,
-  .prose .hljs-selector-tag,
-  .prose .hljs-literal,
-  .prose .hljs-section,
-  .prose .hljs-link {
-    color: #1d4ed8;
+  .reading-prose a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+    transition: text-decoration-color 0.15s ease,
+      text-decoration-thickness 0.15s ease;
   }
 
-  .prose .hljs-string,
-  .prose .hljs-title,
-  .prose .hljs-name,
-  .prose .hljs-type,
-  .prose .hljs-attribute,
-  .prose .hljs-symbol,
-  .prose .hljs-bullet,
-  .prose .hljs-addition {
-    color: #0f766e;
+  .reading-prose a:hover {
+    text-decoration-thickness: 2px;
+    text-decoration-color: currentColor;
   }
 
-  .prose .hljs-number,
-  .prose .hljs-variable,
-  .prose .hljs-template-variable,
-  .prose .hljs-meta .hljs-string {
-    color: #be123c;
+  .reading-prose a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
-  .dark .prose .hljs-comment,
-  .dark .prose .hljs-quote {
-    color: #94a3b8;
+  /* 标题：正文上方留白大于下方，形成段落归属感 */
+  .reading-prose h1,
+  .reading-prose h2,
+  .reading-prose h3,
+  .reading-prose h4 {
+    color: var(--ink-strong);
+    font-weight: 650;
+    line-height: 1.4;
+    scroll-margin-top: 6rem;
+    text-wrap: balance;
   }
 
-  .dark .prose .hljs-keyword,
-  .dark .prose .hljs-selector-tag,
-  .dark .prose .hljs-literal,
-  .dark .prose .hljs-section,
-  .dark .prose .hljs-link {
-    color: #93c5fd;
+  .reading-prose h1 {
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    margin: 2.4em 0 0.9em;
   }
 
-  .dark .prose .hljs-string,
-  .dark .prose .hljs-title,
-  .dark .prose .hljs-name,
-  .dark .prose .hljs-type,
-  .dark .prose .hljs-attribute,
-  .dark .prose .hljs-symbol,
-  .dark .prose .hljs-bullet,
-  .dark .prose .hljs-addition {
-    color: #5eead4;
+  .reading-prose h2 {
+    font-size: 1.42rem;
+    letter-spacing: -0.016em;
+    margin: 2.7em 0 1em;
   }
 
-  .dark .prose .hljs-number,
-  .dark .prose .hljs-variable,
-  .dark .prose .hljs-template-variable,
-  .dark .prose .hljs-meta .hljs-string {
-    color: #fda4af;
+  .reading-prose h3 {
+    font-size: 1.16rem;
+    letter-spacing: -0.01em;
+    margin: 2.2em 0 0.75em;
   }
 
-  .prose img {
+  .reading-prose h4 {
+    font-size: 1rem;
+    letter-spacing: 0;
+    margin: 1.9em 0 0.6em;
+    color: var(--ink-soft);
+  }
+
+  .reading-prose ul,
+  .reading-prose ol {
+    margin: 0 0 1.75em;
+    padding-left: 1.5em;
+  }
+
+  .reading-prose ul {
+    list-style: disc;
+  }
+
+  .reading-prose ol {
+    list-style: decimal;
+  }
+
+  .reading-prose li {
+    margin: 0.4em 0;
+    padding-left: 0.15em;
+  }
+
+  .reading-prose li::marker {
+    color: var(--faint);
+  }
+
+  .reading-prose li > ul,
+  .reading-prose li > ol {
+    margin: 0.4em 0 0.2em;
+  }
+
+  .reading-prose blockquote {
+    margin: 0 0 1.9em;
+    padding: 0.15em 0 0.15em 1.35em;
+    border-left: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    color: var(--muted);
+    font-style: normal;
+  }
+
+  .reading-prose blockquote p:last-child {
+    margin-bottom: 0;
+  }
+
+  .reading-prose hr {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin: 3.2em 0;
+  }
+
+  .reading-prose img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 2.2em auto;
+    border-radius: 0.625rem;
+    border: 1px solid var(--rule-soft);
+    background: var(--paper-raised);
+  }
+
+  .reading-prose figure {
+    margin: 2.2em 0;
+  }
+
+  .reading-prose figure img {
+    margin: 0 auto;
+  }
+
+  .reading-prose figcaption {
+    margin-top: 0.9em;
+    text-align: center;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    color: var(--faint);
+  }
+
+  /* 表格 */
+  .reading-prose table {
+    width: 100%;
+    margin: 0 0 2em;
+    border-collapse: collapse;
+    font-size: 0.94em;
+    line-height: 1.65;
+  }
+
+  /* 用 :where() 把优先级压到 0 类，让 MDX 组件的工具类（px-4 等）能覆盖 */
+  .reading-prose :where(thead th) {
+    text-align: left;
+    font-weight: 650;
+    color: var(--ink-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 0.65em 0.8em;
+  }
+
+  .reading-prose :where(tbody td) {
+    border-bottom: 1px solid var(--rule-soft);
+    padding: 0.65em 0.8em;
+    vertical-align: top;
+  }
+
+  .reading-prose :where(tbody tr:last-child td) {
+    border-bottom: 0;
+  }
+
+  /* MDX 内置组件（DataTable / Callout 等）自带样式，不继承正文元素规则 */
+  .reading-prose .not-prose figure,
+  .reading-prose .not-prose table {
+    border: 0;
+    margin: 0;
+  }
+
+  .reading-prose .not-prose th,
+  .reading-prose .not-prose td {
+    border-bottom: 0;
+  }
+
+  /* 组件内部标题/段落自己负责间距，不再继承正文的段距 */
+  .reading-prose .not-prose h1,
+  .reading-prose .not-prose h2,
+  .reading-prose .not-prose h3,
+  .reading-prose .not-prose h4,
+  .reading-prose .not-prose h5,
+  .reading-prose .not-prose h6,
+  .reading-prose .not-prose p {
+    margin: 0;
+  }
+
+  .reading-prose .not-prose img {
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .reading-prose .not-prose figcaption {
+    margin: 0;
+    text-align: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  .reading-prose .not-prose code {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+  }
+
+  /* 行内代码 */
+  .reading-prose :not(pre) > code {
+    font-family: "FiraCode", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.86em;
+    padding: 0.12em 0.38em;
+    margin: 0 0.12em;
+    border-radius: 5px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    color: var(--ink-strong);
+    overflow-wrap: anywhere;
+  }
+
+  /* 代码块 */
+  .reading-prose pre {
+    position: relative;
+    margin: 2em 0;
+    padding: 1.15em 1.25em;
+    border: 1px solid var(--code-border);
+    border-left: 3px solid color-mix(in srgb, var(--accent) 70%, transparent);
+    border-radius: 0.625rem;
+    background: var(--code-block-bg);
+    overflow-x: auto;
+    font-size: 0.82em;
+    line-height: 1.75;
+    tab-size: 2;
+  }
+
+  .reading-prose pre code,
+  .reading-prose pre code.hljs,
+  .reading-prose .hljs {
+    display: block;
+    padding: 0;
+    margin: 0;
+    background: transparent !important;
+    border: 0;
+    border-radius: 0;
+    color: var(--ink);
+    font-family: "FiraCode", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 1em;
+    line-height: inherit;
+  }
+
+  .reading-prose pre::after {
+    content: attr(data-after-content);
+    position: absolute;
+    top: 0.65em;
+    right: 0.9em;
+    font-family: "FiraCode", ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    pointer-events: none;
+  }
+
+  /* Shiki（.mdx）输出的代码块：共用 hljs 那套配色。
+     Shiki 会把颜色和底色写成内联样式，这里必须覆盖掉。 */
+  .reading-prose pre.astro-code {
+    background: var(--code-block-bg) !important;
+    color: var(--ink);
+    border-color: var(--code-border);
+  }
+
+  .reading-prose .astro-code span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style);
+    font-weight: var(--shiki-light-font-weight);
+    text-decoration: var(--shiki-light-text-decoration);
+  }
+
+  .dark .reading-prose .astro-code span {
+    color: var(--shiki-dark);
+    font-style: var(--shiki-dark-font-style);
+    font-weight: var(--shiki-dark-font-weight);
+    text-decoration: var(--shiki-dark-text-decoration);
+  }
+
+  .reading-prose pre.astro-code::after {
+    content: attr(data-language);
+  }
+
+  /* 没有语言标记的代码块不显示角标 */
+  .reading-prose pre.astro-code[data-language="text"]::after,
+  .reading-prose pre[data-after-content=""]::after {
+    content: none;
+  }
+
+  .reading-prose kbd {
+    font-family: "FiraCode", ui-monospace, monospace;
+    font-size: 0.82em;
+    padding: 0.1em 0.4em;
+    border: 1px solid var(--rule-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: var(--paper-raised);
+  }
+
+  .reading-prose mark {
+    background: var(--mark-bg);
+    color: var(--ink-strong);
+    padding: 0 0.15em;
+    border-radius: 2px;
+  }
+
+  /* details / summary */
+  .reading-prose details {
+    margin: 0 0 1.75em;
+    padding: 0.9em 1.1em;
+    border: 1px solid var(--rule);
     border-radius: 0.5rem;
+    background: var(--paper-raised);
   }
 
-  .prose[data-mkd-content] img:not([data-no-zoom]) {
+  .reading-prose summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ink-strong);
+  }
+
+  .reading-prose details[open] summary {
+    margin-bottom: 0.8em;
+  }
+
+  /* 代码语法高亮（暖纸 / 暖暗两套） */
+  .reading-prose .hljs-comment,
+  .reading-prose .hljs-quote {
+    color: #8b8579;
+    font-style: italic;
+  }
+
+  .reading-prose .hljs-keyword,
+  .reading-prose .hljs-selector-tag,
+  .reading-prose .hljs-literal,
+  .reading-prose .hljs-section,
+  .reading-prose .hljs-link {
+    color: #1e50b5;
+  }
+
+  .reading-prose .hljs-string,
+  .reading-prose .hljs-title,
+  .reading-prose .hljs-name,
+  .reading-prose .hljs-type,
+  .reading-prose .hljs-attribute,
+  .reading-prose .hljs-symbol,
+  .reading-prose .hljs-bullet,
+  .reading-prose .hljs-addition {
+    color: #0d6b5f;
+  }
+
+  .reading-prose .hljs-number,
+  .reading-prose .hljs-variable,
+  .reading-prose .hljs-template-variable,
+  .reading-prose .hljs-meta .hljs-string {
+    color: #a8324c;
+  }
+
+  .dark .reading-prose .hljs-comment,
+  .dark .reading-prose .hljs-quote {
+    color: #8a8478;
+  }
+
+  .dark .reading-prose .hljs-keyword,
+  .dark .reading-prose .hljs-selector-tag,
+  .dark .reading-prose .hljs-literal,
+  .dark .reading-prose .hljs-section,
+  .dark .reading-prose .hljs-link {
+    color: #8fb2ff;
+  }
+
+  .dark .reading-prose .hljs-string,
+  .dark .reading-prose .hljs-title,
+  .dark .reading-prose .hljs-name,
+  .dark .reading-prose .hljs-type,
+  .dark .reading-prose .hljs-attribute,
+  .dark .reading-prose .hljs-symbol,
+  .dark .reading-prose .hljs-bullet,
+  .dark .reading-prose .hljs-addition {
+    color: #6fd3bd;
+  }
+
+  .dark .reading-prose .hljs-number,
+  .dark .reading-prose .hljs-variable,
+  .dark .reading-prose .hljs-template-variable,
+  .dark .reading-prose .hljs-meta .hljs-string {
+    color: #f2a1b3;
+  }
+
+  .reading-prose[data-mkd-content] img:not([data-no-zoom]) {
     cursor: zoom-in;
+  }
+
+  /* AI 摘要卡内部段落 */
+  .summary-body p {
+    margin: 0 0 0.7em;
+  }
+
+  .summary-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .summary-body a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+  }
+
+  .summary-body ul,
+  .summary-body ol {
+    margin: 0 0 0.7em;
+    padding-left: 1.3em;
+    list-style: disc;
   }
 
   .medium-zoom-overlay {
@@ -258,5 +778,56 @@
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* 阅读页：导航与页面底色统一（id 选择器保证覆盖 bg-white 等工具类） */
+  .reading-page #main-header {
+    background-color: var(--paper);
+    box-shadow: 0 1px 0 var(--rule-soft);
+  }
+
+  .reading-page #main-header nav {
+    box-shadow: none;
+  }
+
+  .reading-page #main-header ul {
+    background-color: var(--paper);
+  }
+
+  /* 阅读页页脚：去掉漂浮阴影，改用一条分隔线落在纸面上 */
+  .reading-page footer {
+    background-color: var(--paper);
+    box-shadow: none;
+    border-top: 1px solid var(--rule);
+  }
+}
+
+@media (max-width: 640px) {
+  .reading-prose {
+    font-size: 1rem;
+    line-height: 1.8;
+    letter-spacing: 0.012em;
+  }
+
+  .reading-prose h2 {
+    font-size: 1.3rem;
+  }
+
+  .reading-prose h3 {
+    font-size: 1.1rem;
+  }
+
+  .reading-prose pre {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  /* 窄屏下宽表格改为横向滚动，避免撑破页面 */
+  .reading-prose table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }

@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="X 时间线画像封面：100 条推文的 10×10 采样网格，其中 19 条推广、9 个重复账号">
+  <rect width="1200" height="675" fill="#faf9f5"/>
+
+  <text x="80" y="126" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2.8" fill="#918c82">X TIMELINE · 100 POSTS</text>
+
+  <text x="78" y="216" font-family="'PingFang SC','Hiragino Sans GB','Source Han Sans SC',system-ui,sans-serif" font-size="60" font-weight="700" letter-spacing="-1.4" fill="#121110">给我的时间线</text>
+  <text x="78" y="290" font-family="'PingFang SC','Hiragino Sans GB','Source Han Sans SC',system-ui,sans-serif" font-size="60" font-weight="700" letter-spacing="-1.4" fill="#121110">画一张<tspan fill="#2f6feb">像</tspan></text>
+
+  <text x="80" y="342" font-family="'PingFang SC','Hiragino Sans GB','Source Han Sans SC',system-ui,sans-serif" font-size="18" fill="#4a463d">100 条去重推文里，藏着算法对我的判断</text>
+
+  <g font-family="'PingFang SC','Hiragino Sans GB',system-ui,sans-serif">
+    <text x="80" y="436" font-size="38" font-weight="700" fill="#121110">100</text>
+    <text x="80" y="458" font-size="12" letter-spacing="0.8" fill="#918c82">推文样本</text>
+    <text x="238" y="436" font-size="38" font-weight="700" fill="#cf7a35">19</text>
+    <text x="238" y="458" font-size="12" letter-spacing="0.8" fill="#918c82">推广内容</text>
+    <text x="396" y="436" font-size="38" font-weight="700" fill="#2f6feb">9</text>
+    <text x="396" y="458" font-size="12" letter-spacing="0.8" fill="#918c82">重复账号</text>
+  </g>
+
+  <g font-family="'PingFang SC','Hiragino Sans GB',system-ui,sans-serif" font-size="12" fill="#6e6a63">
+    <rect x="80" y="512" width="12" height="12" rx="3" fill="#e3ded1"/>
+    <text x="100" y="522">其他 72</text>
+    <rect x="200" y="512" width="12" height="12" rx="3" fill="#cf7a35"/>
+    <text x="220" y="522">推广 19</text>
+    <rect x="308.5" y="513.5" width="9" height="9" rx="2.5" fill="#f3efe4" stroke="#2f6feb" stroke-width="2.5"/>
+    <text x="328" y="522">重复账号 9</text>
+  </g>
+
+  <g>
+    <rect x="707" y="112" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="112" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="848" y="112" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="112" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="112" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1083" y="112" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="159" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="159" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="895" y="159" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="159" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="159" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="660" y="159" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="848" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1083" y="206" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="895" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="660" y="253" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="848" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1083" y="300" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="895" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="660" y="347" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="848" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1083" y="394" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="895" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="660" y="441" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="848" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1083" y="488" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="1036" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="989" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="942" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="895" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="848" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="801" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="754" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="707" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="660" y="535" width="38" height="38" rx="6" fill="#e3ded1"/>
+    <rect x="660" y="112" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="895" y="112" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="1083" y="159" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="848" y="159" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="660" y="206" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="895" y="206" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="1083" y="253" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="848" y="253" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="660" y="300" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="895" y="300" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="1083" y="347" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="848" y="347" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="660" y="394" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="895" y="394" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="1083" y="441" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="848" y="441" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="660" y="488" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="895" y="488" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="1083" y="535" width="38" height="38" rx="6" fill="#cf7a35"/>
+    <rect x="755.5" y="113.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="990.5" y="113.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="990.5" y="160.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="755.5" y="160.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="990.5" y="207.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="943.5" y="254.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="1037.5" y="301.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="802.5" y="395.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+    <rect x="1037.5" y="489.5" width="35" height="35" rx="5" fill="#f3efe4" stroke="#2f6feb" stroke-width="3"/>
+  </g>
+
+  <text x="660" y="600" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10.5" letter-spacing="0.8" fill="#a29b8d">每个方块 = 1 条推文 · 10 × 10</text>
+</svg>

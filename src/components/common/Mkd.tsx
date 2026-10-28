@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import remarkEmoji from "remark-emoji";
 import hljs from "highlight.js/lib/common";
-import "highlight.js/styles/atom-one-light.css";
+import GithubSlugger from "github-slugger";
 
 interface Props {
   markdown: string;
@@ -30,6 +30,17 @@ function getCodeText(node: React.ReactNode): string {
 }
 
 const Mkd = memo(function Mkd({ markdown }: Props) {
+  // 与 Astro 内置的标题锚点保持同一套 slug 规则，目录才能跳转
+  const slugger = new GithubSlugger();
+
+  function heading(Tag: "h1" | "h2" | "h3" | "h4") {
+    return function Heading({ children }: { children?: React.ReactNode }) {
+      const text = getCodeText(children).trim();
+      const id = text ? slugger.slug(text) : undefined;
+      return <Tag id={id}>{children}</Tag>;
+    };
+  }
+
   function PreEle({ children }: { children?: React.ReactNode }) {
     let label = "";
     if (React.isValidElement(children)) {
@@ -71,13 +82,7 @@ const Mkd = memo(function Mkd({ markdown }: Props) {
   }
 
   return (
-    <section
-      data-mkd-content
-      className="prose max-w-none p-8 prose-img:block prose-p:text-[14px] lg:prose-p:text-[15px]
-    prose-img:m-auto prose-img:shadow prose-img:rounded-md prose-pre:text-[14px] prose-blockquote:break-all
-    prose-a:text-[#3bb0f0] dark:prose-invert dark:text-gray-300 dark:prose-pre:bg-[#1e293b] prose-pre:bg-[#F2F5F7]
-    prose-pre:!p-0 prose-pre:my-4"
-    >
+    <div data-mkd-content>
       <Markdown
         remarkPlugins={
           [remarkGfm, remarkEmoji] as React.ComponentProps<
@@ -85,11 +90,18 @@ const Mkd = memo(function Mkd({ markdown }: Props) {
           >["remarkPlugins"]
         }
         rehypePlugins={[rehypeRaw]}
-        components={{ pre: PreEle, code: CodeBlock }}
+        components={{
+          pre: PreEle,
+          code: CodeBlock,
+          h1: heading("h1"),
+          h2: heading("h2"),
+          h3: heading("h3"),
+          h4: heading("h4"),
+        }}
       >
         {markdown}
       </Markdown>
-    </section>
+    </div>
   );
 });
 
